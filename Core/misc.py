@@ -1,8 +1,8 @@
-import os
-import pathlib
 import mne
 import numpy as np
 import logging
+
+logger = logging.getLogger(__name__)
 
 
 def _shuffle_along_axis(data, axis):
@@ -71,31 +71,34 @@ def snr(epochs):
     return rms
 
 
+import logging
+
 def set_logger(logger, level):
+    """Configure a logger with a stream handler and a specified log level.
+
+    Args:
+        logger (logging.Logger): The logger instance to be configured.
+        level (str): The desired logging level (e.g., 'DEBUG', 'INFO', 'WARNING').
+
+    Returns:
+        None
+
+    """
+    # Set the logging level of the logger instance to the specified level
     logger.setLevel(level.upper())
-    # create console handler and set level to debug
+
+    # Create a StreamHandler to send log messages to the console
     ch = logging.StreamHandler()
+
+    # Set the logging level of the StreamHandler to the specified level
     ch.setLevel(level.upper())
-    # create formatter
+
+    # Create a Formatter to format log messages
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    # add formatter to ch
+
+    # Add the Formatter to the StreamHandler
     ch.setFormatter(formatter)
-    # add ch to logger
+
+    # Add the StreamHandler to the logger instance
     logger.addHandler(ch)
 
-def get_evokeds(ids, root_dir, return_average=False):
-    all_evokeds = dict()
-    for id in ids:
-        evokeds = utils.read_object("evokeds", root_dir, id)
-        for condition in evokeds:
-            if condition.comment not in all_evokeds.keys():
-                all_evokeds[condition.comment] = [condition]
-            else:
-                all_evokeds[condition.comment].append(condition)
-    if return_average == True:
-        evokeds_avrgd = dict()
-        for key in all_evokeds:
-            evokeds_avrgd[key] = mne.grand_average(all_evokeds[key])
-        return all_evokeds, evokeds_avrgd
-    else:
-        return all_evokeds

@@ -1,6 +1,7 @@
 from core.misc import *
 from core.FileHandler import FileHandler
 from core.FigureHandler import FigureHandler
+import os
 import mne
 import logging
 from autoreject import AutoReject, Ransac
@@ -484,20 +485,60 @@ class EEGPipeline(FileHandler):
             for key, value in self.SNR_trend.items():
                 f.write('%s:%s\n' % (key, value))
 
+
+
     def save(self, data, subject, overwrite=True):
+        """Save MNE-Python data to a file for a specified subject.
+
+        Args:
+            data: The MNE-Python data object to be saved (e.g., mne.io.brainvision.brainvision.RawBrainVision,
+                  mne.epochs.Epochs, mne.evoked.Evoked, or list of mne.evoked.Evoked objects).
+            subject (str): The subject identifier for the data being saved.
+            overwrite (bool): Whether to overwrite an existing file with the same name (default is True).
+
+        Returns:
+            None
+
+        """
+        # Log that the file is being saved for the specified subject
         log.info(f"Saving file for subject {subject} ... ")
+
+        # Determine the appropriate file extension based on the type of data being saved
         if isinstance(data, mne.io.brainvision.brainvision.RawBrainVision):
-            data.save(os.path.join(f"{self.data_dir}", subject, f"{subject}_raw.fif"), overwrite=overwrite)
+            ext = '_raw.fif'
         elif isinstance(data, mne.epochs.Epochs):
-            data.save(os.path.join(f"{self.data_dir}", subject, f"{subject}-epo.fif"), overwrite=overwrite)
+            ext = '-epo.fif'
         elif isinstance(data, mne.evoked.Evoked):
-            data.save(os.path.join(f"{self.data_dir}", subject, f"{subject}-ave.fif"), overwrite=overwrite)
+            ext = '-ave.fif'
         elif isinstance(data, list):
-            mne.write_evokeds(os.path.join(f"{self.data_dir}", subject, f"{subject}-ave.fif"), evoked=self.evokeds,
+            ext = '-ave.fif'
+
+        # Save the data to a file in the appropriate format and location
+        if isinstance(data, list):
+            mne.write_evokeds(os.path.join(f"{self.data_dir}", subject, f"{subject}{ext}"), evoked=data,
                               overwrite=overwrite)
+        else:
+            data.save(os.path.join(f"{self.data_dir}", subject, f"{subject}{ext}"), overwrite=overwrite)
 
     def run(self, subjects, concatenate=True, filtering=True, epochs=True, rereference=True,
             ica=True, reject=True, averaging=True, snr_to_text=True):
+        """
+        Runs the pipeline for each subject in the given list of subjects.
+
+        Parameters:
+            subjects (list): A list of subject names.
+            concatenate (bool): Whether or not to concatenate the data. Default is True.
+            filtering (bool): Whether or not to filter the data. Default is True.
+            epochs (bool): Whether or not to create epochs. Default is True.
+            rereference (bool): Whether or not to re-reference the data. Default is True.
+            ica (bool): Whether or not to apply Independent Component Analysis (ICA) to the data. Default is True.
+            reject (bool): Whether or not to reject epochs. Default is True.
+            averaging (bool): Whether or not to average the epochs. Default is True.
+            snr_to_text (bool): Whether or not to save the Signal-to-Noise Ratio (SNR) of the epochs to a text file. Default is True.
+
+        Returns:
+            None
+        """
         log.info("Starting pipeline ... ")
         if not self.subjects == list():
             log.error(f"{self}.subjects must be a list of subject names, not {type(self.subjects)}!")
