@@ -493,7 +493,8 @@ class EEGPipeline(FileHandler):
         elif isinstance(data, mne.evoked.Evoked):
             data.save(os.path.join(f"{self.data_dir}", subject, f"{subject}-ave.fif"), overwrite=overwrite)
         elif isinstance(data, list):
-            mne.write_evokeds(os.path.join(f"{self.data_dir}", subject, f"{subject}-ave.fif"), overwrite=overwrite)
+            mne.write_evokeds(os.path.join(f"{self.data_dir}", subject, f"{subject}-ave.fif"), evoked=self.evokeds,
+                              overwrite=overwrite)
 
     def run(self, subjects, concatenate=True, filtering=True, epochs=True, rereference=True,
             ica=True, reject=True, averaging=True, snr_to_text=True):
@@ -527,21 +528,5 @@ if __name__ == "__main__":
     fp = "D:\\EEG\\example"
     pl = EEGPipeline(root_dir=fp)
 
-    # select subject
-    subject = pl.subjects[:1]
-
-    # test pipeline
-    pl.concatenate_brainvision(subject=pl.subjects[0], **pl.params.concatenate)  # 1.
-    pl.filtering(**pl.params.filtering)  # 2.
-    pl.make_epochs(**pl.params.epochs)  # 3.
-    pl.rereference(**pl.params.rereference)  # 4.
-    pl.apply_ica(**pl.params.ica)  # 5.
-    pl.reject_epochs(**pl.params.reject)  # 6.
-    pl.average_epochs(**pl.params.averaging)  # 7.
-
     # run automated pipeline for one subject
-    pl.run(subjects=subject)
-
-
-    # test
-    evokeds = mne.read_evokeds("D:\EEG\example\data\\03d3rc\-ave.fif")
+    pl.run(subjects=pl.subjects)

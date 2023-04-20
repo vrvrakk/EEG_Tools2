@@ -82,3 +82,20 @@ def set_logger(logger, level):
     ch.setFormatter(formatter)
     # add ch to logger
     logger.addHandler(ch)
+
+def get_evokeds(ids, root_dir, return_average=False):
+    all_evokeds = dict()
+    for id in ids:
+        evokeds = utils.read_object("evokeds", root_dir, id)
+        for condition in evokeds:
+            if condition.comment not in all_evokeds.keys():
+                all_evokeds[condition.comment] = [condition]
+            else:
+                all_evokeds[condition.comment].append(condition)
+    if return_average == True:
+        evokeds_avrgd = dict()
+        for key in all_evokeds:
+            evokeds_avrgd[key] = mne.grand_average(all_evokeds[key])
+        return all_evokeds, evokeds_avrgd
+    else:
+        return all_evokeds

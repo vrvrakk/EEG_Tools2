@@ -7,9 +7,6 @@ import logging
 
 log = logging.getLogger(__name__)
 
-# TODO: folder structure method
-# TODO: save file method
-
 
 class FileHandler:
     def __init__(self, root_dir):
@@ -63,9 +60,6 @@ class FileHandler:
         ica_ref = mne.preprocessing.read_ica(ica_ref_fp)
         log.info("Successfully loaded ica reference")
         return ica_ref
-
-    def save_file(self, file):
-        pass
 
 
 if __name__ == "__main__":
