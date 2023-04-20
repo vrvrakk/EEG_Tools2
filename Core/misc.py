@@ -41,37 +41,57 @@ def snr(epochs):
 
     """
 
+    logger.info("Started SNR calculation.")
+
     # Make a copy of the epochs data to avoid modifying the original data
     epochs_tmp = epochs.copy()
+
     # Remove the last epoch if the number of epochs is odd to ensure even number of epochs for averaging
     n_epochs = epochs_tmp.get_data().shape[0]
     if not n_epochs % 2 == 0:
         epochs_tmp = epochs_tmp[:-1]
-    # Get the number of epochs after removing the last epoch
     n_epochs = epochs_tmp.get_data().shape[0]
+
+    logger.debug(f"Number of epochs after removing the last epoch: {n_epochs}")
+
     # Invert every other epoch to create noise epochs
     for i in range(n_epochs):
         if not i % 2:
             epochs_tmp.get_data()[i, :, :] = -epochs_tmp.get_data()[i, :, :]
+
+    logger.debug("Inverted every other epoch to create noise epochs.")
+
     # Calculate the average of the inverted epochs to get the noise epochs
     noises = epochs_tmp.average().get_data()
+
+    logger.debug("Calculated the average of the inverted epochs to get the noise epochs.")
+
     # Shuffle the noise epochs along the time axis to create shuffled noise epochs
     shuffled_noises = _shuffle_along_axis(noises, axis=1)
+
+    logger.debug("Shuffled the noise epochs along the time axis to create shuffled noise epochs.")
+
     # Calculate the signal epochs by subtracting the shuffled noise epochs from the original epochs
     signals = shuffled_noises.copy()
     for idx, noise in enumerate(shuffled_noises):
         for epoch in epochs.average().get_data():
             signal = epoch - noise
         signals[idx] = signal
+
+    logger.debug("Calculated the signal epochs by subtracting the shuffled noise epochs from the original epochs.")
+
     # Calculate the SNR for each epoch
     snr = signals[signals != 0] / noises[noises != 0]
+
+    logger.debug("Calculated the SNR for each epoch.")
+
     # Calculate the root-mean-square (RMS) of the SNR values
     rms = np.mean(np.sqrt(snr ** 2))
 
+    logger.info("Finished SNR calculation.")
+
     return rms
 
-
-import logging
 
 def set_logger(logger, level):
     """Configure a logger with a stream handler and a specified log level.
