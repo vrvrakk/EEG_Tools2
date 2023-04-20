@@ -10,7 +10,7 @@ import numpy as np
 import matplotlib
 matplotlib.use("qt5agg")
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 # TODO: implement FigureHandler
 # TODO: subject handling sucks --> especially bad when saving data --> SubjectHandler?
