@@ -63,11 +63,9 @@ def spatem_test(evokeds, conditions, pval=.05, n_permutations=1000, n_jobs=-1, p
 
 
 if "__name__" == "__main__":
-    import sys
-    import numpy as np
-    sys.path.append("D:/Projects/eeg_tools/src/eeg_tools")
-    import analysis
-    import settings
-    evokeds = analysis.get_evokeds(settings.ids, settings.root_dir, return_average=False)
+    from core.Analyzer import EEGAnalyzer
+    fp = "D:\\EEG\\example"
+    analyzer = EEGAnalyzer(fp)
+    evokeds = analyzer.get_evokeds_all_subjects()
     spatem_test(evokeds)
     s, p = target_test(evokeds, time_windows=[(-0.2, 0)], electrodes=["FCz"], conditions=["pinknoise/1", "pinknoise/5"])
