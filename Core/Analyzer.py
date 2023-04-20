@@ -3,7 +3,7 @@ import mne  # import MNE library
 import os  # import os module for operating system dependent functionality
 import logging  # import logging module for logging purposes
 
-log = logging.getLogger(__name__)  # create a logger object with the name of the current module
+logger = logging.getLogger(__name__)  # create a logger object with the name of the current module
 
 
 class EEGAnalyzer(EEGPipeline):
