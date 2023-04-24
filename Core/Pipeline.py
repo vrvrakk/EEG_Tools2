@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 
 # TODO: implement FigureHandler
 # TODO: subject handling sucks --> especially bad when saving data --> SubjectHandler?
+# TODO: reset state and SNR trend dicts when processing a new subject
 
 
 class EEGPipeline(FileHandler):
@@ -34,7 +35,7 @@ class EEGPipeline(FileHandler):
                 ...
                 |- sub_n
         """
-        log.info("Instantiating EEG pipeline ... ")
+        logger.info("Instantiating EEG pipeline ... ")
         super().__init__(root_dir)
         self.root_dir = root_dir  # must direct to raw eeg data directories
         self.filehandler = FileHandler(self.root_dir)
@@ -97,38 +98,38 @@ class EEGPipeline(FileHandler):
             - ValueError: If ref_to_add is None and add_reference_channels is set to True.
 
         """
-        log.info(f"Concatenating BrainVision files for {subject}...")
+        logger.info(f"Concatenating BrainVision files for {subject}...")
         # Find all vhdr files for the given subject
         raw_files = list()
         brainvision_path = self.filehandler.find(pattern="*vhdr")
         self.brainvision_files = [vhdr for vhdr in brainvision_path if subject in vhdr]
         self.subject_currently_processing = subject
-        log.debug(f"Found {len(self.brainvision_files)} BrainVision files for {subject}")
+        logger.debug(f"Found {len(self.brainvision_files)} BrainVision files for {subject}")
         # Read and concatenate BrainVision files
         for file in self.brainvision_files:
-            log.debug(f"Reading {file}...")
+            logger.debug(f"Reading {file}...")
             raw_files.append(mne.io.read_raw_brainvision(vhdr_fname=file, preload=preload))  # read BrainVision files.
         self.raw = mne.concatenate_raws(raw_files)  # make raw files
-        log.info(f"Successfully concatenated raw file for {subject}")
+        logger.info(f"Successfully concatenated raw file for {subject}")
         # Rename channels if mapping is provided
         if self.mapping:
-            log.info("Renaming channels...")
+            logger.info("Renaming channels...")
             self.raw.rename_channels(self.mapping)
         # Add reference channels if requested
         if add_reference_channels:
-            log.info("Adding reference channels...")
+            logger.info("Adding reference channels...")
             if ref_to_add is not None:
                 self.raw.add_reference_channels(ref_to_add)
             else:
                 raise ValueError("Need to add reference channel")
         # Set montage if provided
         if self.montage:
-            log.info("Setting montage...")
+            logger.info("Setting montage...")
             self.raw.set_montage(self.montage)
         # Update state
         self.state["concatenated_brainvision"] = True
         if save:
-            log.info("Saving data...")
+            logger.info("Saving data...")
             self.save(data=self.raw, subject=self.subject_currently_processing)
 
     def filtering(self, highpass=None, lowpass=None, notch=None, picks=None,
@@ -172,13 +173,13 @@ class EEGPipeline(FileHandler):
 
         """
         if not isinstance(self.raw, mne.io.brainvision.brainvision.RawBrainVision):
-            log.error("Raw instance does not follow MNE convention!")
+            logger.error("Raw instance does not follow MNE convention!")
         else:
-            log.info("Raw instance follows MNE convention.")
+            logger.info("Raw instance follows MNE convention.")
 
         if highpass or lowpass:
-            log.info(f"Applying {'highpass' if highpass else 'lowpass'} filter with {method} method...")
-            log.debug(
+            logger.info(f"Applying {'highpass' if highpass else 'lowpass'} filter with {method} method...")
+            logger.debug(
                 f"Filter parameters: l_freq={highpass}, h_freq={lowpass}, picks={picks}, filter_length={filter_length}, l_trans_bandwidth={l_trans_bandwidth}, h_trans_bandwidth={h_trans_bandwidth}, method={method}, iir_params={iir_params}, phase={phase}, fir_window={fir_window}, fir_design={fir_design}, n_jobs={n_jobs}, skip_by_annotation={skip_by_annotation}, pad={pad}, verbose={verbose}")
 
             self.raw.filter(l_freq=highpass, h_freq=lowpass,
@@ -186,18 +187,18 @@ class EEGPipeline(FileHandler):
                             h_trans_bandwidth=h_trans_bandwidth, method=method, iir_params=iir_params, phase=phase,
                             fir_window=fir_window, fir_design=fir_design, n_jobs=n_jobs,
                             skip_by_annotation=skip_by_annotation, pad=pad, verbose=verbose)
-            log.info(f"{'Highpass' if highpass else 'Lowpass'} filter applied successfully!")
+            logger.info(f"{'Highpass' if highpass else 'Lowpass'} filter applied successfully!")
 
         if notch:
-            log.info(f"Applying notch filter with {notch}Hz center frequency...")
+            logger.info(f"Applying notch filter with {notch}Hz center frequency...")
             self.raw.notch_filter(notch)
-            log.info("Notch filter applied successfully!")
+            logger.info("Notch filter applied successfully!")
 
         self.state["filtered"] = True
         if save:
-            log.info("Saving filtered data...")
+            logger.info("Saving filtered data...")
             self.save(data=self.raw, subject=self.subject_currently_processing)
-            log.info("Filtered data saved successfully!")
+            logger.info("Filtered data saved successfully!")
 
     def make_epochs(self, exclude_event_id, event_id, preload=True, tmin=-0.2, tmax=0.5, baseline=(None, 0),
                     picks=None, reject=None, flat=None, proj=True, decim=1, reject_tmin=None, reject_tmax=None,
@@ -270,19 +271,19 @@ class EEGPipeline(FileHandler):
 
         """
 
-        log.info("Cutting time series data into epochs ... ")
+        logger.info("Cutting time series data into epochs ... ")
         self.events = mne.pick_events(events=mne.events_from_annotations(self.raw)[0],
                                       exclude=exclude_event_id)
-        log.info(f"Number of events after excluding unwanted events: {len(self.events)}")
+        logger.info(f"Number of events after excluding unwanted events: {len(self.events)}")
         self.epochs = mne.Epochs(self.raw, events=self.events, event_id=event_id, preload=preload, tmin=tmin, tmax=tmax,
                                  baseline=baseline,
                                  picks=picks, reject=reject, flat=flat, proj=proj, decim=decim, reject_tmin=reject_tmin,
                                  reject_tmax=reject_tmax, detrend=detrend, on_missing=on_missing,
                                  reject_by_annotation=reject_by_annotation, metadata=metadata,
                                  event_repeated=event_repeated, verbose=verbose)
-        log.info(f"Number of epochs: {len(self.epochs)}")
+        logger.info(f"Number of epochs: {len(self.epochs)}")
         self.SNR_trend["initial"] = snr(self.epochs)
-        log.info(f"Initial signal-to-noise ratio: {self.SNR_trend['initial']}")
+        logger.info(f"Initial signal-to-noise ratio: {self.SNR_trend['initial']}")
         self.state["epoched"] = True
         if save:
             self.save(data=self.epochs, subject=self.subject_currently_processing)
@@ -316,9 +317,9 @@ class EEGPipeline(FileHandler):
 
         """
 
-        log.info(f"Rereferencing data according to type {ref_type} ... ")
+        logger.info(f"Rereferencing data according to type {ref_type} ... ")
         if not self.epochs:
-            log.error("No epochs found. Make sure to create epochs from continuous data before re-referencing!")
+            logger.error("No epochs found. Make sure to create epochs from continuous data before re-referencing!")
         if ref_type == "average":
             if ransac_params:
                 ransac = Ransac(**ransac_params)
@@ -334,7 +335,7 @@ class EEGPipeline(FileHandler):
             self.epochs.info['bads'] = ransac.bad_chs_
             self.epochs.set_eeg_reference(ref_channels=ref_type, projection=True)
             self.epochs.apply_proj()
-            log.info("Data has been rereferenced using average reference.")
+            logger.info("Data has been rereferenced using average reference.")
         elif ref_type == "REST":
             sphere = mne.make_sphere_model("auto", "auto", self.epochs.info)
             src = mne.setup_volume_source_space(
@@ -342,13 +343,13 @@ class EEGPipeline(FileHandler):
             forward = mne.make_forward_solution(
                 self.epochs.info, trans=None, src=src, bem=sphere)
             self.epochs = self.epochs.set_eeg_reference("REST", forward=forward)
-            log.info("Data has been rereferenced using REST reference.")
+            logger.info("Data has been rereferenced using REST reference.")
         elif ref_type == "linked_mastoids":
             self.epochs = self.epochs.set_eeg_reference(["TP9", "TP10"])
-            log.info("Data has been rereferenced using linked mastoids reference.")
+            logger.info("Data has been rereferenced using linked mastoids reference.")
         elif ref_type == "custom":
             self.epochs = self.epochs.set_eeg_reference(reference_electrode)
-            log.info("Data has been rereferenced using custom reference.")
+            logger.info("Data has been rereferenced using custom reference.")
         self.SNR_trend["after_reref"] = snr(self.epochs)
         self.state["rereferenced"] = True
         if save:
@@ -387,11 +388,11 @@ class EEGPipeline(FileHandler):
         --------
         None
         """
-        log.info("Applying independent-component-analysis ... ")
+        logger.info("Applying independent-component-analysis ... ")
         self.ICA = ICA(n_components=n_components, method=method, noise_cov=noise_cov, random_state=random_state,
                        fit_params=fit_params, max_iter=max_iter, verbose=verbose)
         if rejection_mode == "manual":
-            log.info("Performing manual ICA rejection ...")
+            logger.info("Performing manual ICA rejection ...")
             self.ICA.fit(self.epochs)
             self.ICA.plot_components(picks=None)
             self.ICA.plot_sources(self.epochs, start=0, stop=15, show_scrollbars=False, block=True)
@@ -400,7 +401,7 @@ class EEGPipeline(FileHandler):
             self.ICA.exclude = [int(x) for x in self.ICA.exclude]
             self.ICA.apply(self.epochs, exclude=self.ICA.exclude)
         if rejection_mode == "auto":
-            log.info("Performing automatic ICA rejection ...")
+            logger.info("Performing automatic ICA rejection ...")
             self.ICA.fit(self.epochs)
             ref = self.ica_ref  # reference ICA containing blink and saccade components.
             labels = list(ref.labels_.keys())  # .labels_ dict must contain "blinks" key with int values.
@@ -458,18 +459,18 @@ class EEGPipeline(FileHandler):
         -------
         None
         """
-        log.info(f"Rejecting epochs based on {mode} ... ")
+        logger.info(f"Rejecting epochs based on {mode} ... ")
         if mode == "autoreject":
-            log.info("Using AutoReject for epoch rejection...")
+            logger.info("Using AutoReject for epoch rejection...")
             self.ar = AutoReject(n_interpolate=n_interpolate, n_jobs=n_jobs, consensus=consensus, cv=cv,
                                  thresh_method=thresh_method, random_state=random_state, verbose=verbose, picks=picks)
             self.ar.fit(self.epochs)
-            self.epochs, reject_log = self.ar.transform(self.epochs, return_log=True)
+            self.epochs, reject_logger = self.ar.transform(self.epochs, return_logger=True)
         elif mode == "threshold":
-            log.info("Using threshold-based rejection for epoch rejection...")
+            logger.info("Using threshold-based rejection for epoch rejection...")
             self.epochs = self.epochs.drop_bad(reject=reject, flat=flat)
         else:
-            log.error("Right now, only mode -> autoreject or manual is implemented. Please set the mode to autoreject "
+            logger.error("Right now, only mode -> autoreject or manual is implemented. Please set the mode to autoreject "
                       "or manual!")
         self.SNR_trend["after_rejection"] = snr(self.epochs)
         self.state["rejected_epochs"] = True
@@ -496,26 +497,26 @@ class EEGPipeline(FileHandler):
         -------
         None
         """
-        log.info(f"Averaging epochs by event type -> {by_event_type} ... ")
+        logger.info(f"Averaging epochs by event type -> {by_event_type} ... ")
         if baseline:
-            log.info(f"Applying baseline correction with {baseline} ... ")
+            logger.info(f"Applying baseline correction with {baseline} ... ")
             self.epochs.apply_baseline(baseline)
             self.SNR_trend["after_baseline"] = snr(self.epochs)
         else:
-            log.info("No baseline correction applied.")
+            logger.info("No baseline correction applied.")
         self.evokeds = self.epochs.average(by_event_type=by_event_type)
         self.state["averaged_epochs"] = True
         if save:
             self.save(data=self.evokeds, subject=self.subject_currently_processing)
-        log.info("Epochs averaged successfully.")
+        logger.info("Epochs averaged successfully.")
 
     def snr_to_txt(self, subject):
-        log.info(f"Saving SNR trend for {subject} as .txt file ... ")
+        logger.info(f"Saving SNR trend for {subject} as .txt file ... ")
         to_path = os.path.join(self.data_dir, subject, f"SNR_trend_{subject}.txt")
         with open(to_path, 'w') as f:
             for key, value in self.SNR_trend.items():
                 f.write('%s:%s\n' % (key, value))
-        log.info(f"SNR trend saved as .txt file for {subject}!")
+        logger.info(f"SNR trend saved as .txt file for {subject}!")
 
     def save(self, data, subject, overwrite=True):
         """Save MNE-Python data to a file for a specified subject.
@@ -530,8 +531,8 @@ class EEGPipeline(FileHandler):
             None
 
         """
-        # Log that the file is being saved for the specified subject
-        log.info(f"Saving file for subject {subject} ... ")
+        # logger that the file is being saved for the specified subject
+        logger.info(f"Saving file for subject {subject} ... ")
 
         # Determine the appropriate file extension based on the type of data being saved
         if isinstance(data, mne.io.brainvision.brainvision.RawBrainVision):
@@ -545,11 +546,11 @@ class EEGPipeline(FileHandler):
 
         # Save the data to a file in the appropriate format and location
         if isinstance(data, list):
-            log.info(f"Saving list of evoked data for subject {subject} ...")
+            logger.info(f"Saving list of evoked data for subject {subject} ...")
             mne.write_evokeds(os.path.join(f"{self.data_dir}", subject, f"{subject}{ext}"), evoked=data,
                               overwrite=overwrite)
         else:
-            log.info(f"Saving data for subject {subject} ...")
+            logger.info(f"Saving data for subject {subject} ...")
             data.save(os.path.join(f"{self.data_dir}", subject, f"{subject}{ext}"), overwrite=overwrite)
 
     def run(self, subjects, concatenate=True, filtering=True, epochs=True, rereference=True,
@@ -571,39 +572,39 @@ class EEGPipeline(FileHandler):
         Returns:
             None
         """
-        log.info("Starting pipeline ... ")
+        logger.info("Starting pipeline ... ")
         if not self.subjects == list():
-            log.error(f"{self}.subjects must be a list of subject names, not {type(self.subjects)}!")
+            logger.error(f"{self}.subjects must be a list of subject names, not {type(self.subjects)}!")
         for subject in subjects:
-            log.info(f"Processing subject {subject}")
+            logger.info(f"Processing subject {subject}")
             if concatenate:
-                log.info(f"Concatenating data for subject {subject} ... ")
+                logger.info(f"Concatenating data for subject {subject} ... ")
                 self.concatenate_brainvision(subject=subject, **self.params.concatenate)
             if filtering:
-                log.info(f"Filtering data for subject {subject} ... ")
+                logger.info(f"Filtering data for subject {subject} ... ")
                 self.filtering(**self.params.filtering)
             if epochs:
-                log.info(f"Epoching data for subject {subject} ... ")
+                logger.info(f"Epoching data for subject {subject} ... ")
                 self.make_epochs(**self.params.epochs)
             if rereference:
-                log.info(f"Rereferencing data for subject {subject} ... ")
+                logger.info(f"Rereferencing data for subject {subject} ... ")
                 self.rereference(**self.params.rereference)
             if ica:
-                log.info(f"Applying ICA for subject {subject} ... ")
+                logger.info(f"Applying ICA for subject {subject} ... ")
                 self.apply_ica(**self.params.ica)
             if reject:
-                log.info(f"Rejecting epochs for subject {subject} ... ")
+                logger.info(f"Rejecting epochs for subject {subject} ... ")
                 self.reject_epochs(**self.params.reject)
             if averaging:
-                log.info(f"Averaging epochs for subject {subject} ... ")
+                logger.info(f"Averaging epochs for subject {subject} ... ")
                 self.average_epochs(**self.params.averaging)
             if snr_to_text:
-                log.info(f"Saving SNR trend as .txt file for subject {subject} ... ")
+                logger.info(f"Saving SNR trend as .txt file for subject {subject} ... ")
                 self.snr_to_txt(subject=self.subject_currently_processing)
 
 
 if __name__ == "__main__":
-    set_logger(logger=log, level="debug")
+    set_logger(loggerger=logger, level="debug")
 
     # Instantiate
     fp = "D:\\EEG\\example"

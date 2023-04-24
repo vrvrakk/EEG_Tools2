@@ -42,12 +42,12 @@ class EEGAnalyzer(EEGPipeline):
         - all_evokeds (dict): a dictionary containing all evoked data for each subject and condition
         - evokeds_avrgd (dict): a dictionary containing the grand average of evoked data for each condition
         """
-        log.info("Loading evoked data for all subjects and conditions...")
+        logger.info("Loading evoked data for all subjects and conditions...")
         all_evokeds = dict()  # initialize an empty dictionary to store evoked data for each subject and condition
         for subject in self.subjects:
             # get the path of the evoked data file for the current subject and condition
             path = os.path.join(f"{self.data_dir}", subject, f"{subject}-ave.fif")
-            log.info(f"Loading evoked data from {path}")
+            logger.info(f"Loading evoked data from {path}")
             evokeds = mne.read_evokeds(path, condition=condition)  # read the evoked data from the file
             for cond in evokeds:
                 if cond.comment not in all_evokeds.keys():  # if the condition is not already in the dictionary
@@ -58,7 +58,7 @@ class EEGAnalyzer(EEGPipeline):
         if return_average:
             evokeds_avrgd = dict()
             for key in all_evokeds:
-                log.info(f"Averaging evoked data for condition {key}")
+                logger.info(f"Averaging evoked data for condition {key}")
                 evokeds_avrgd[key] = mne.grand_average(all_evokeds[key])
             return all_evokeds, evokeds_avrgd
         else:
