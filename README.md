@@ -22,3 +22,17 @@ Here, instead of writing extended scripts for basic preprocessing, you can simpl
 The core modules can be found in the **core** directory. Here, the EEGPipeline is the main module for preprocessing EEG data. The `misc.py` module contains utility functions such as for calculating SNR ratios or setting the logging level for information output.
 With the Analyzer you can load up your preprocessed evoked data for further analysis with MNE-Python. 
 Be sure to include the setting and data files in the same root directory. A pipeline processing example can be found in `examples/run_pipeline.py`.
+
+The EEGPipeline takes a root_dir as argument. Be sure to organize your data in the root directory in the following structure:
+* root_dir:  #  parent directory
+*     |- setting  # child directory containing following files:
+*         |- mapping.json  # electrode mapping
+*         |- ica_reference.fif  # optional
+*         |- config.py  # configuration for preprocessing
+*         |- montage.bvef  # electrode scalp coordinates
+*     |- data  # child directory containing subject directories
+*         |- sub_01  # child directory containing electrophysiological data
+*         |- sub_02
+*         |- sub_03
+*         ...
+*         |- sub_n
