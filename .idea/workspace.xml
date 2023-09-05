@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="e6b904c9-5857-475e-90eb-78e2fda0bcc3" name="Changes" comment="update" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="EEGPipeline" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "customColor": "",
+  "associatedIndex": 1
+}]]></component>
+  <component name="ProjectId" id="2OH4WYpESQb8wLn9cwdhhvh4Crg" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "last_opened_file_path": "/home/max/Projects/BinauralLocalizationCNN_modified",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "PyScientificConfigurable",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="e6b904c9-5857-475e-90eb-78e2fda0bcc3" name="Changes" comment="" />
+      <created>1681204207849</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1681204207849</updated>
+      <workItem from="1681204210945" duration="1253000" />
+      <workItem from="1681205581120" duration="12826000" />
+      <workItem from="1681289721519" duration="3724000" />
+      <workItem from="1681299449603" duration="1325000" />
+      <workItem from="1681309357823" duration="4876000" />
+      <workItem from="1681377461649" duration="5849000" />
+      <workItem from="1681383611521" duration="80000" />
+      <workItem from="1681386467961" duration="9989000" />
+      <workItem from="1681396568217" duration="768000" />
+      <workItem from="1681397353804" duration="288000" />
+      <workItem from="1681397655227" duration="474000" />
+      <workItem from="1681470958699" duration="4378000" />
+      <workItem from="1681475671469" duration="1002000" />
+      <workItem from="1681476819053" duration="777000" />
+      <workItem from="1681477823592" duration="317000" />
+      <workItem from="1681478769511" duration="2601000" />
+      <workItem from="1681728618505" duration="9046000" />
+      <workItem from="1681833612302" duration="5342000" />
+      <workItem from="1681888022691" duration="8517000" />
+      <workItem from="1681910996887" duration="3792000" />
+      <workItem from="1681993735184" duration="3085000" />
+      <workItem from="1681996953660" duration="1410000" />
+      <workItem from="1682004480147" duration="1274000" />
+      <workItem from="1682005778478" duration="1912000" />
+      <workItem from="1682007739056" duration="4975000" />
+      <workItem from="1682277230082" duration="614000" />
+      <workItem from="1682322911867" duration="431000" />
+      <workItem from="1682323367219" duration="302000" />
+      <workItem from="1684230247776" duration="737000" />
+      <workItem from="1685472713187" duration="14000" />
+      <workItem from="1685529400141" duration="358000" />
+      <workItem from="1685529767867" duration="1461000" />
+      <workItem from="1685533198652" duration="10000" />
+      <workItem from="1693927703664" duration="142000" />
+    </task>
+    <task id="LOCAL-00001" summary="First commit">
+      <created>1681205285011</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1681205285011</updated>
+    </task>
+    <task id="LOCAL-00002" summary="First commit">
+      <created>1681993834440</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1681993834440</updated>
+    </task>
+    <task id="LOCAL-00003" summary="Progress update">
+      <created>1681997356336</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1681997356336</updated>
+    </task>
+    <task id="LOCAL-00004" summary="Code documentation">
+      <created>1682005831282</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1682005831282</updated>
+    </task>
+    <task id="LOCAL-00005" summary="Added logging info">
+      <created>1682008760856</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1682008760856</updated>
+    </task>
+    <task id="LOCAL-00006" summary="Added logging info">
+      <created>1682009379656</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1682009379656</updated>
+    </task>
+    <task id="LOCAL-00007" summary="Added example settings">
+      <created>1682010190556</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1682010190556</updated>
+    </task>
+    <task id="LOCAL-00008" summary="main script execution">
+      <created>1682010209896</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1682010209896</updated>
+    </task>
+    <task id="LOCAL-00009" summary="add environment">
+      <created>1682011910028</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1682011910028</updated>
+    </task>
+    <task id="LOCAL-00010" summary="Added info to README">
+      <created>1682013467396</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1682013467396</updated>
+    </task>
+    <task id="LOCAL-00011" summary="fixed logging">
+      <created>1682323420542</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1682323420542</updated>
+    </task>
+    <task id="LOCAL-00012" summary="added info about root dir structure">
+      <created>1684230954786</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1684230954786</updated>
+    </task>
+    <task id="LOCAL-00013" summary="update env">
+      <created>1685530165776</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1685530165776</updated>
+    </task>
+    <task id="LOCAL-00014" summary="update">
+      <created>1685530404554</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1685530404554</updated>
+    </task>
+    <task id="LOCAL-00015" summary="update">
+      <option name="closed" value="true" />
+      <created>1693927791516</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1693927791516</updated>
+    </task>
+    <option name="localTasksCounter" value="16" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="First commit" />
+    <MESSAGE value="Progress update" />
+    <MESSAGE value="Code documentation" />
+    <MESSAGE value="Added logging info" />
+    <MESSAGE value="Added example settings" />
+    <MESSAGE value="main script execution" />
+    <MESSAGE value="add environment" />
+    <MESSAGE value="Added info to README" />
+    <MESSAGE value="fixed logging" />
+    <MESSAGE value="added info about root dir structure" />
+    <MESSAGE value="update env" />
+    <MESSAGE value="update" />
+    <option name="LAST_COMMIT_MESSAGE" value="update" />
+  </component>
+</project>
