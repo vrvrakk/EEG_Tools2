@@ -10,3 +10,5 @@ pl = EEGPipeline(root_dir=fp)
 
 # run automated pipeline for one subject
 pl.run(subjects=pl.subjects)
+
+#change
