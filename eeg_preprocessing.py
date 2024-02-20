@@ -20,5 +20,5 @@ pipeline.make_epochs(event_id=epoch_params['event_id'], exclude_event_id=None)
 pipeline.save(data=pipeline.epochs, subject=subject, overwrite=True)
 
 
-# AT END OF ALGORTIHM: save snr
+# AT END OF ALGORITHM: save snr
 pipeline.snr_to_txt(subject=subject)
