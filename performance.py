@@ -32,22 +32,22 @@ for index, file_info in enumerate(marker_files):
 
 # define stimulus types:
 for df_name, df in dfs.items():
-    print(df_name)
+    # print(df_name)
     for index, stim_mrk in enumerate(df['Stimulus Stream']):
         if stim_mrk in stim1.values():
-            print('stimulus marker is type 1')
+            # print('stimulus marker is type 1')
             df.at[index, 'Stimulus Type'] = 'stim1'
             df.at[index, 'Numbers'] = next(key for key, value in stim1.items() if value == stim_mrk)
         elif stim_mrk in stim2.values():
-            print('stimulus marker is type 2')
+            # print('stimulus marker is type 2')
             df.at[index, 'Stimulus Type'] = 'stim2'
             df.at[index, 'Numbers'] = next(key for key, value in stim2.items() if value == stim_mrk)
         elif stim_mrk in response.values():
-            print('stimulus marker is type response')
+            # print('stimulus marker is type response')
             df.at[index, 'Stimulus Type'] = 'response'
             df.at[index, 'Numbers'] = next(key for key, value in response.items() if value == stim_mrk)
         else:
-            print('invalid stimulus marker')
+            # print('invalid stimulus marker')
             df.at[index, 'Stimulus Type'] = None
             df.at[index, 'Numbers'] = 0
     df['Numbers'] = df['Numbers'].astype(int)
@@ -57,11 +57,35 @@ for df_name, df in dfs.items():
     rows_to_remove = []
     for index, marker in enumerate(df['Stimulus Type']):
         if marker is None:
-            print(index)
             rows_to_remove.extend([index, index+1])
     df.drop(rows_to_remove, inplace=True)
+    df.reset_index(drop=True, inplace=True)
+
+time_diff = []
+for df_name, df in dfs.items():
+    # Filter rows where the stimulus type is 'response' or 'stim1'
+    response_stim1_df = df[(df['Stimulus Type'] == 'response') | (df['Stimulus Type'] == 'stim1')]
+    response_stim1_df.reset_index(drop=True, inplace=True)
+for index in range(1, len(response_stim1_df)):
+    response_timestamp = int(response_stim1_df.at[index, 'Position'])
+    prev_stim1_timestamp = int(response_stim1_df.at[index - 1, 'Position'])
+    reaction_time = response_timestamp - prev_stim1_timestamp
+    time_diff.append(reaction_time)
+
+
+for index in range(1, len(response_stim1_df)):
+    if index % 2 == 0:  # Even indices correspond to 'reaction' stimulus type rows
+        response_stim1_df.loc[index, 'reaction time'] = time_diff[(index - 1) // 2]
+# convert RTs to integers:
+response_stim1_df['reaction time'] = response_stim1_df['reaction time'].fillna(-1)
+response_stim1_df['reaction time'] = response_stim1_df['reaction time'].astype(int)
+time_df['Time difference'].median()
+time_df['Time difference'].mean()
+
+
 
 # calculate correct responses:
 # TODO calculate error rate
+# TODO add debounce for button presses
 
 
