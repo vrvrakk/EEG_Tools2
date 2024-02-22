@@ -11,7 +11,7 @@ response = {1: 'S129', 2: 'S130', 3: 'S131', 4: 'S132', 5: 'S133', 6: 'S134', 8:
 # select .vmrk files:
 marker_files = []
 for files in os.listdir(data_path):
-    if files.endswith('azimuth.vmrk'):
+    if files.endswith('ele.vmrk'):
         marker_files.append(data_path / files)
 
 # save marker files as pandas dataframe:
@@ -51,6 +51,7 @@ for df_name, df in dfs.items():
             df.at[index, 'Stimulus Type'] = None
             df.at[index, 'Numbers'] = 0
     df['Numbers'] = df['Numbers'].astype(int)
+    df['Position'] = df['Position'].astype(int)
 
 # discarding None values:
 for df_name, df in dfs.items():
@@ -61,31 +62,73 @@ for df_name, df in dfs.items():
     df.drop(rows_to_remove, inplace=True)
     df.reset_index(drop=True, inplace=True)
 
-time_diff = []
+# remove unwanted rows from 1 dataset:
+discard_rows = list(range(1802, 1806))
+dfs['df_240215_hz_azimuth'] = dfs['df_240215_hz_azimuth'].drop(discard_rows)
+
+# create new df with stim1 and responses:
+responses_dfs = {}
 for df_name, df in dfs.items():
     # Filter rows where the stimulus type is 'response' or 'stim1'
-    response_stim1_df = df[(df['Stimulus Type'] == 'response') | (df['Stimulus Type'] == 'stim1')]
-    response_stim1_df.reset_index(drop=True, inplace=True)
-for index in range(1, len(response_stim1_df)):
-    response_timestamp = int(response_stim1_df.at[index, 'Position'])
-    prev_stim1_timestamp = int(response_stim1_df.at[index - 1, 'Position'])
-    reaction_time = response_timestamp - prev_stim1_timestamp
-    time_diff.append(reaction_time)
+    responses_df = df[(df['Stimulus Type'] == 'response') | (df['Stimulus Type'] == 'stim1')]
+    responses_df.reset_index(drop=True, inplace=True)
+    responses_dfs[df_name] = responses_df
 
 
-for index in range(1, len(response_stim1_df)):
-    if index % 2 == 0:  # Even indices correspond to 'reaction' stimulus type rows
-        response_stim1_df.loc[index, 'reaction time'] = time_diff[(index - 1) // 2]
-# convert RTs to integers:
-response_stim1_df['reaction time'] = response_stim1_df['reaction time'].fillna(-1)
-response_stim1_df['reaction time'] = response_stim1_df['reaction time'].astype(int)
-time_df['Time difference'].median()
-time_df['Time difference'].mean()
+# find correct responses:
+performance_df = {}
+for df_name, df in dfs.items():
+    correct_responses_count = 0
+    misses = 0
+    false_responses_count = 0
+    distractor_responses = 0
+    RTs = []
+
+    previous_stim1_number = None
+    for i in range(len(df)-1, -1, -1):  # iterate in reverse through df
+        if df.at[i, 'Stimulus Type'] == 'response':
+            response_number = df.at[i, 'Numbers']  # get response number
+            response_timestamp = pd.to_numeric(df.at[i, 'Position'])
+            # Look for the previous 'stim1' stimulus
+            j = i - 1
+            while j >= 0 and df.at[j, 'Stimulus Type'] != 'stim1':
+                j -= 1
+            if j >= 0:
+                previous_stim1_number = df.at[j, 'Numbers']  # get previous 'stim1' number
+                previous_stim1_timestamp = pd.to_numeric(df.at[j, 'Position'])
+                print(f"Response to stimulus 1: {previous_stim1_number} was {response_number}")
+                if response_number == previous_stim1_number:
+                    correct_responses_count += 1
+                    reaction_time_s1 = response_timestamp - previous_stim1_timestamp
+                    RTs.append(reaction_time_s1)
+                else:
+                    false_responses_count += 1
+                    reaction_time_false = response_timestamp - previous_stim1_timestamp
+                    RTs.append(reaction_time_false)
+                    for k in range(j, i):
+                        if df.at[k, 'Stimulus Type'] == 'stim2' and response_number == df.at[k, 'Numbers']:
+                            previous_stim2_timestamp = pd.to_numeric(df.at[k, 'Position'])
+                            distractor_responses += 1
+                            reaction_time_s2 = response_timestamp - previous_stim2_timestamp
+                            RTs.append(reaction_time_s2)
+                            print(f'Response to stimulus 2: {response_number} occurred ')
+            else:
+                print(f"No previous 'stim1' found for response {response_number}")
+                misses += 1
+    performance_df[df_name] = {'correct_responses': correct_responses_count,
+                               'misses': misses,
+                               'false_responses': false_responses_count,
+                               'distractor_responses': distractor_responses,
+                               'reaction_times': RTs}
+
+mean_rt = int(np.mean(RTs))
+median_rt = int(np.median(RTs))
+max_rt = int(np.max(RTs))
+min_rt = int(np.min(RTs))
 
 
 
-# calculate correct responses:
-# TODO calculate error rate
-# TODO add debounce for button presses
+
+
 
 
