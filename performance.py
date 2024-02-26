@@ -2,20 +2,19 @@ import os
 from pathlib import Path
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 data_path = Path('C:/Users/vrvra/PycharmProjects/EEG_Tools2/eeg')
 stim1 = {1: 'S  1', 2: 'S  2', 3: 'S  3', 4: 'S  4', 5: 'S  5', 6: 'S  6', 8: 'S  8', 9: 'S  9'}  # stimulus 1 markers
 stim2 = {1: 'S 65', 2: 'S 66', 3: 'S 67', 4: 'S 68', 5: 'S 69', 6: 'S 70', 8: 'S 72', 9: 'S 73'}  # stimulus 2 markers
-# invalid_markers = ['S 75', 'S195', 'S 64', 'S135', 'S138', 'S139', 'S140', 'S141', 'S142', 'S198', 'S199', 'S200',
-#                  'S201', 'S202',
-#                   'S203', 'S204', 'S205', 'S206', 'S207', 'S197']
 response = {1: 'S129', 2: 'S130', 3: 'S131', 4: 'S132', 5: 'S133', 6: 'S134', 8: 'S136', 9: 'S137'}  # response markers
 
 
 # select .vmrk files:
 marker_files = []
 for files in os.listdir(data_path):
-    if files.endswith('azimuth.vmrk'):
+    if files.endswith('ele.vmrk'):
         marker_files.append(data_path / files)
 
 # save marker files as pandas dataframe:
@@ -25,7 +24,7 @@ for index, file_info in enumerate(marker_files):
     file_name = file_info.stem
     df = pd.read_csv(file_info, delimiter='\t', header=None)  # t for tabs
     df_name = f'df_{file_name}'
-    df = df.iloc[10:]
+    df = df.iloc[10:] # delete first 10 rows
     df = df.reset_index(drop=True, inplace=False)
     df = df[0].str.split(',', expand=True).applymap(lambda x: None if x == '' else x)
     df = df.iloc[:, 1:3]
@@ -64,7 +63,6 @@ for df_name, df in dfs.items():
     df.reset_index(drop=True, inplace=True)
 
 # remove Stimulus Stream, convert Numbers and Positions vals to int:
-dfs_updated = {}
 for df_name, df in dfs.items():
     df['Numbers'] = pd.to_numeric(df['Numbers'])
     df['Position'] = pd.to_numeric(df['Position'])
@@ -72,120 +70,200 @@ for df_name, df in dfs.items():
     df['Time'] = df['Position'] / 500
     df.drop(columns=['Stimulus Stream'], inplace=True)
     # drop response rows that are invalid:
-    drop_responses = []
     for index in range(len(df)-1):
-        current_timestamp = df.at[index, 'Position'] / 500
-        next_timestamp = df.at[index + 1, 'Position'] / 500
-        time_difference = next_timestamp - current_timestamp
-        df.at[index, 'Time Differences'] = time_difference
+        if df.at[index, 'Stimulus Type'] == 'response':
+            current_timestamp = df.at[index, 'Position'] / 500
+            next_timestamp = df.at[index + 1, 'Position'] / 500
+            time_difference = next_timestamp - current_timestamp
+            df.at[index, 'Time Differences'] = time_difference
+
+# clear invalid responses:
+dfs_updated = {}
+drop_responses_dict = {}
+time_differences_dict = {}
+for df_name, df in dfs.items():
+    time_differences_list = []
+    drop_responses = []
+
     for index, stimulus in enumerate(df['Stimulus Type']):
         if stimulus == 'response' and index < len(df) - 2:
             current_response = df.at[index, 'Numbers']
+            next_stimulus = df.at[index + 1, 'Stimulus Type']
             next_response = df.at[index + 1, 'Numbers']
+            over_next_stimulus = df.at[index + 2, 'Stimulus Type']
             over_next_response = df.at[index + 2, 'Numbers']
-            if current_response == over_next_response:
-                drop_responses.extend([index + 1, index + 2])
-            elif current_response == next_response:
+
+            if next_stimulus == 'response' and current_response == next_response:
+                time_differences_list.append(df.at[index, 'Time Differences'])
                 drop_responses.append(index)
+            elif over_next_stimulus == 'response' and current_response == over_next_response:
+                time_differences_list.extend(
+                    [df.at[index + 1, 'Time Differences'], df.at[index + 2, 'Time Differences']])
+                drop_responses.extend([index + 1, index + 2])
+
+    drop_responses_dict[df_name] = drop_responses # save invalid responses in dict
+    time_differences_dict[df_name] = time_differences_list
     df = df.drop(drop_responses)
     df.reset_index(drop=True, inplace=True)
-    dfs_updated[df_name] = df
+    dfs_updated[df_name] = df  # save updated dfs in dict
+
 
 # TODO: calculate S1 responses, S2 responses, no responses, errors.
-
-s1_responses = 0
+s1_responses_dict = {}
+s2_responses_dict = {}
+errors_dict = {}
+misses_dict = {}
 for df_name, df in dfs_updated.items():
-    for i, stimulus in enumerate(df['Stimulus Type']):
-        if stimulus == 'stim1' and i + 1 < len(df):  # Check if the current stimulus is 'stim1' and there's a next stimulus
-            next_stimulus = df.at[i + 1, 'Stimulus Type']
-            stimulus_number = df.at[i, 'Numbers']
-            while next_stimulus != 'stim1':
-                if next_stimulus == 'response':  # Check if the next stimulus is 'response'
-                    response_number = df.at[i + 1, 'Numbers']
-                    if stimulus_number == response_number:  # Check if the response matches the stimulus number
-                        s1_responses += 1
-                    break  # Exit the loop once a response is found
-                i += 1  # Move to the next stimulus
-                if i + 1 < len(df):
-                    next_stimulus = df.at[i + 1, 'Stimulus Type']
-                else:
-                    break  # Exit the loop if we reach the end of the DataFrame
-
-s2_responses = 0
-for df_name, df in dfs_updated.items():
-    for i, stimulus in enumerate(df['Stimulus Type']):
-        if stimulus == 'stim2' and i + 1 < len(df):  # Check if the current stimulus is 'stim1' and there's a next stimulus
-            next_stimulus = df.at[i + 1, 'Stimulus Type']
-            stimulus_number = df.at[i, 'Numbers']
-            while next_stimulus != 'stim2':
-                if next_stimulus == 'response':  # Check if the next stimulus is 'response'
-                    response_number = df.at[i + 1, 'Numbers']
-                    if stimulus_number == response_number:  # Check if the response matches the stimulus number
-                        s2_responses += 1
-                    break  # Exit the loop once a response is found
-                i += 1  # Move to the next stimulus
-                if i + 1 < len(df):
-                    next_stimulus = df.at[i + 1, 'Stimulus Type']
-                else:
-                    break  # Exit the loop if we reach the end of the DataFrame
-
-no_s1_response = []
-no_s2_response = []
-
-for df_name, df in dfs_updated.items():
-    s1_indices = df.index[df['Stimulus Type'] == 'stim1']  # Get indices of 'stim1' onsets
-    s2_indices = df.index[df['Stimulus Type'] == 'stim2']  # Get indices of 'stim2' onsets
-
+    s1_responses = []
+    s2_responses = []
+    errors = []
+    misses = []
+    s1_indices = df.index[df['Stimulus Type'] == 'stim1']
+    response_indices = df.index[df['Stimulus Type'] == 'response']
     for s1_index in s1_indices:
-        next_s1_index = s1_indices[s1_indices > s1_index].min()  # Find the index of the next 'stim1'
-        responses_between_s1 = df.loc[s1_index:next_s1_index - 1]['Stimulus Type'] == 'response'
-        if not responses_between_s1.any():
-            no_s1_response.append((df_name, s1_index, next_s1_index))
+        s1_number = df.at[s1_index, 'Numbers']  # get corresponding number of stim1
+        next_s1_index = s1_indices[s1_indices > s1_index].min()  # get next s1 index
+        window_data = df.loc[s1_index:next_s1_index - 1]
 
-    for s2_index in s2_indices:
-        next_s2_index = s2_indices[s2_indices > s2_index].min()  # Find the index of the next 'stim2'
-        responses_between_s2 = df.loc[s2_index:next_s2_index - 1]['Stimulus Type'] == 'response'
-        if not responses_between_s2.any():
-            no_s2_response.append((df_name, s2_index, next_s2_index))
+        # Find the corresponding number of 'stim2' within the window
+        s2_numbers_within_window = window_data.loc[window_data['Stimulus Type'] == 'stim2', 'Numbers'].values
+        print(s2_numbers_within_window)
+        s2_indices_within_window = window_data.index[window_data['Stimulus Type'] == 'stim2']
+        print(s2_indices_within_window)
 
-errors_s1 = 0
+        responses_within_window = window_data[window_data['Stimulus Type'] == 'response']
+        if len(responses_within_window) == 0:
+            stimulus_type_missed = window_data['Stimulus Type'].values[0]
 
-for df_name, df in dfs_updated.items():
-    s1_indices = df.index[df['Stimulus Type'] == 'stim1']  # Get indices of 'stim1' onsets
-    s1_numbers = df.loc[s1_indices]['Numbers']
+            stimulus_index_missed = window_data.index[0]
 
-    for i, s1_index in enumerate(s1_indices):
-        if i < len(s1_indices) - 1:
-            next_s1_index = s1_indices[i + 1]  # Find the index of the next 'stim1'
+            stimulus_number_missed = window_data.at[stimulus_index_missed, 'Numbers']
+
+            misses.append(('miss', window_data.at[stimulus_index_missed, 'Time'], stimulus_type_missed,
+                           stimulus_number_missed, stimulus_index_missed))
         else:
-            next_s1_index = len(df)
+            for response_index, response_row in responses_within_window.iterrows():
+                response_number = response_row['Numbers']
+                if response_number == s1_number:
+                    s1_responses.append((response_index, 's1', response_number, response_row['Time'], 'stim1',
+                                         s1_number, s1_index))
+                elif response_number in s2_numbers_within_window:
+                    matching_s2_indices = s2_indices_within_window[s2_numbers_within_window == response_number]
+                    for s2_index_within_window in matching_s2_indices:
+                        s2_responses.append((response_index, 's2', response_number, response_row['Time'], 'stim2',
+                                             window_data.at[s2_index_within_window, 'Numbers'], s2_index_within_window))
+                else:
+                    stimulus_index_error = window_data.index[0]
+                    stimulus_type_error = window_data.at[stimulus_index_error, 'Stimulus Type']
+                    stimulus_number_error = window_data.at[stimulus_index_error, 'Numbers']
+                    errors.append((response_index, 'error', response_number, response_row['Time'],
+                                   stimulus_type_error, stimulus_index_error,
+                                   stimulus_number_error))
 
-        response_between_s1 = df.loc[s1_index:next_s1_index]['Stimulus Type'] == 'response'
+    s1_responses_dict[df_name] = {'s1_responses': s1_responses}
+    s2_responses_dict[df_name] = {'s2_responses': s2_responses}
+    errors_dict[df_name] = {'errors': errors}
+    misses_dict[df_name] = {'misses': misses}
 
-        if not response_between_s1.empty and not s1_numbers.empty:
-            if not any(response_between_s1) and df.loc[s1_index]['Numbers'] != s1_numbers.iloc[i]:
-                errors_s1 += 1
+# convert to dfs for readability
 
-errors_s2 = 0
+s1_responses_dfs = {}
+for df_name, sub_dict in s1_responses_dict.items():
+
+    rows = [{'response_index': row[0],
+             'response_type': row[1],
+             'response_number': row[2],
+             'response_time': row[3],
+             'stimulus_type': row[4],
+             'stimulus_number': row[5],
+             'stimulus_index': row[6]} for row in sub_dict['s1_responses']]
+
+    # Create the DataFrame
+    s1_responses_df = pd.DataFrame(rows)
+    s1_responses_dfs[df_name] = s1_responses_df
+
+
+
+# Convert s2_responses_dict
+s2_responses_dfs = {}
+for df_name, sub_dict in s2_responses_dict.items():
+
+    rows = [{'response_index': row[0],
+             'response_type': row[1],
+             'response_number': row[2],
+             'response_time': row[3],
+             'stimulus_type': row[4],
+             'stimulus_number': row[5],
+             'stimulus_index': row[6]} for row in sub_dict['s2_responses']]
+
+    s2_responses_df = pd.DataFrame(rows)
+    s2_responses_dfs[df_name] = s2_responses_df
+
+
+# Convert errors_dict
+errors_dfs = {}
+for df_name, sub_dict in errors_dict.items():
+
+    rows = [{'response_index': row[0],
+             'response_type': row[1],
+             'response_number': row[2],
+             'response_time': row[3],
+             'stimulus_type': row[4],
+             'stimulus_index': row[5],
+             'stimulus_number': row[6]} for row in sub_dict['errors']]
+
+    # Create the DataFrame
+    errors_df = pd.DataFrame(rows)
+    errors_dfs[df_name] = errors_df
+
+# Convert misses_dict
+misses_dfs = {}
+for df_name, sub_dict in misses_dict.items():
+
+    rows = [{'miss_type': row[0],
+             'time_missed': row[1],
+             'stimulus_type_missed': row[2],
+             'stimulus_index_missed': row[3],
+             'stimulus_number_missed': row[4]} for row in sub_dict['misses']]
+
+    misses_df = pd.DataFrame(rows)
+    misses_dfs[df_name] = misses_df
+
+
+response_counts = {}
+
 for df_name, df in dfs_updated.items():
-    s2_indices = df.index[df['Stimulus Type'] == 'stim1']  # Get indices of 'stim1' onsets
-    s2_numbers = df.iloc[s2_indices, 'Numbers']
-    for i, s2_index in enumerate(s2_indices):
-        if i < len(s2_indices) - 1:
-            next_s2_index = s2_indices[i + 1]  # Find the index of the next 'stim1'
-        else:
-            next_s2_index = len(df)
-        response_between_s2 = df.loc[s2_index:next_s2_index - 1, 'Stimulus Type'] == 'response'
-        if not response_between_s2.empty and not any(response_between_s2) and df.loc[s2_index, 'Numbers'] != s2_numbers.iloc[i]:
-            errors_s2 += 1
+    response_counts[df_name] = df['Stimulus Type'].value_counts().get('response', 0)
 
+print(response_counts)
 
-total_responses = errors + s1_responses + s2_responses + no_s1_response + no_s2_response
+# TODO: plot performance
+# Combine all s1_responses_dfs, s2_responses_dfs, errors_dfs, and misses_dfs
+combined_s1_responses = pd.concat(s1_responses_dfs.values())
+combined_s2_responses = pd.concat(s2_responses_dfs.values())
+combined_errors = pd.concat(errors_dfs.values())
+combined_misses = pd.concat(misses_dfs.values())
 
-actual_responses = 0
+# Count each response type
+s1_counts = combined_s1_responses['response_type'].value_counts()
+s2_counts = combined_s2_responses['response_type'].value_counts()
+error_counts = combined_errors['response_type'].value_counts()
+miss_counts = combined_misses['miss_type'].value_counts()
 
-for df_name, df in dfs_updated.items():
-    response_count = df[df['Stimulus Type'] == 'response'].shape[0]
-    actual_responses += response_count
+# Combine counts into one DataFrame
+combined_counts = pd.DataFrame({
+    's1_responses': s1_counts,
+    's2_responses': s2_counts,
+    'errors': error_counts,
+    'misses': miss_counts
+}).fillna(0)  # Fill NaN values with 0 if any type is missing
 
-print("Total number of responses from all DataFrames:", actual_responses)
+# Plot the combined counts
+plt.figure(figsize=(12, 8))
+combined_counts.plot(kind='bar', stacked=False)
+plt.title('Comparison of Responses, Errors, and Misses')
+plt.xlabel('Response Type')
+plt.ylabel('Count')
+plt.xticks(rotation=45)
+plt.legend(title='Response Category')
+plt.show()
