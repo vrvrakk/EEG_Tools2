@@ -4,10 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e6b904c9-5857-475e-90eb-78e2fda0bcc3" name="Changes" comment="trying to calculate performance">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/performance.py" beforeDir="false" afterPath="$PROJECT_DIR$/performance.py" afterDir="false" />
-    </list>
+    <list default="true" id="e6b904c9-5857-475e-90eb-78e2fda0bcc3" name="Changes" comment="performance calculate and plotted for elevation and azimuth" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -306,7 +303,14 @@
       <option name="project" value="LOCAL" />
       <updated>1708790804449</updated>
     </task>
-    <option name="localTasksCounter" value="27" />
+    <task id="LOCAL-00027" summary="performance calculate and plotted for elevation and azimuth">
+      <created>1708934329101</created>
+      <option name="number" value="00027" />
+      <option name="presentableId" value="LOCAL-00027" />
+      <option name="project" value="LOCAL" />
+      <updated>1708934329101</updated>
+    </task>
+    <option name="localTasksCounter" value="28" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -338,6 +342,7 @@
     <MESSAGE value="update" />
     <MESSAGE value="calculate error rate" />
     <MESSAGE value="trying to calculate performance" />
-    <option name="LAST_COMMIT_MESSAGE" value="trying to calculate performance" />
+    <MESSAGE value="performance calculate and plotted for elevation and azimuth" />
+    <option name="LAST_COMMIT_MESSAGE" value="performance calculate and plotted for elevation and azimuth" />
   </component>
 </project>

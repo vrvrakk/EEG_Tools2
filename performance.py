@@ -14,7 +14,7 @@ response = {1: 'S129', 2: 'S130', 3: 'S131', 4: 'S132', 5: 'S133', 6: 'S134', 8:
 # select .vmrk files:
 marker_files = []
 for files in os.listdir(data_path):
-    if files.endswith('ele.vmrk'):
+    if files.endswith('azimuth.vmrk'):
         marker_files.append(data_path / files)
 
 # save marker files as pandas dataframe:
