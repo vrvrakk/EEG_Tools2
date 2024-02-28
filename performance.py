@@ -5,7 +5,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-data_path = Path('C:/Users/vrvra/PycharmProjects/EEG_Tools2/eeg')
+# data_path = Path('C:/Users/vrvra/PycharmProjects/EEG_Tools2/eeg')
+s1_files = Path('C:/Users/vrvra/PycharmProjects/EEG_Tools2/eeg/s1')
+s2_files = Path('C:/Users/vrvra/PycharmProjects/EEG_Tools2/eeg/s2')
 stim1 = {1: 'S  1', 2: 'S  2', 3: 'S  3', 4: 'S  4', 5: 'S  5', 6: 'S  6', 8: 'S  8', 9: 'S  9'}  # stimulus 1 markers
 stim2 = {1: 'S 65', 2: 'S 66', 3: 'S 67', 4: 'S 68', 5: 'S 69', 6: 'S 70', 8: 'S 72', 9: 'S 73'}  # stimulus 2 markers
 response = {1: 'S129', 2: 'S130', 3: 'S131', 4: 'S132', 5: 'S133', 6: 'S134', 8: 'S136', 9: 'S137'}  # response markers
@@ -13,9 +15,9 @@ response = {1: 'S129', 2: 'S130', 3: 'S131', 4: 'S132', 5: 'S133', 6: 'S134', 8:
 
 # select .vmrk files:
 marker_files = []
-for files in os.listdir(data_path):
+for files in os.listdir(s2_files):
     if files.endswith('azimuth.vmrk'):
-        marker_files.append(data_path / files)
+        marker_files.append(s2_files / files)
 
 # save marker files as pandas dataframe:
 columns = ['Stimulus Stream', 'Position', 'Time Difference']
