@@ -4,21 +4,27 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
+import warnings
+
+# Suppress all warnings
+warnings.filterwarnings("ignore")
+
 matplotlib.use('TkAgg')
 
-
+data_path = Path('C:/Users/vrvra/PycharmProjects/EEG_Tools2/eeg')
 s1_files = Path('C:/Users/vrvra/PycharmProjects/EEG_Tools2/eeg/s1')
 s2_files = Path('C:/Users/vrvra/PycharmProjects/EEG_Tools2/eeg/s2')
+new_data = Path('C:/Users/vrvra/PycharmProjects/EEG_Tools2/eeg/new_data')
+
 stim1 = {1: 'S  1', 2: 'S  2', 3: 'S  3', 4: 'S  4', 5: 'S  5', 6: 'S  6', 8: 'S  8', 9: 'S  9'}  # stimulus 1 markers
 stim2 = {1: 'S 65', 2: 'S 66', 3: 'S 67', 4: 'S 68', 5: 'S 69', 6: 'S 70', 8: 'S 72', 9: 'S 73'}  # stimulus 2 markers
 response = {1: 'S129', 2: 'S130', 3: 'S131', 4: 'S132', 5: 'S133', 6: 'S134', 8: 'S136', 9: 'S137'}  # response markers
 
-
 # select .vmrk files:
 marker_files = []
-for files in os.listdir(s1_files):
-    if files.endswith('azimuth.vmrk'):
-        marker_files.append(s1_files / files)
+for files in os.listdir(new_data):
+    if files.endswith('s1_240305_zh_ele.vmrk'):
+        marker_files.append(new_data / files)
 
 # save marker files as pandas dataframe:
 columns = ['Stimulus Stream', 'Position', 'Time Difference']
@@ -27,7 +33,7 @@ for index, file_info in enumerate(marker_files):
     file_name = file_info.stem
     df = pd.read_csv(file_info, delimiter='\t', header=None)  # t for tabs
     df_name = f'df_{file_name}'
-    df = df.iloc[10:] # delete first 10 rows
+    df = df.iloc[10:]  # delete first 10 rows
     df = df.reset_index(drop=True, inplace=False)
     df = df[0].str.split(',', expand=True).applymap(lambda x: None if x == '' else x)
     df = df.iloc[:, 1:3]
@@ -73,7 +79,7 @@ for df_name, df in dfs.items():
     df['Time'] = df['Position'] / 500
     df.drop(columns=['Stimulus Stream'], inplace=True)
     # drop response rows that are invalid:
-    for index in range(len(df)-1):
+    for index in range(len(df) - 1):
         if df.at[index, 'Stimulus Type'] == 'response':
             current_timestamp = df.at[index, 'Position'] / 500
             next_timestamp = df.at[index + 1, 'Position'] / 500
@@ -104,250 +110,153 @@ for df_name, df in dfs.items():
                     [df.at[index + 1, 'Time Differences'], df.at[index + 2, 'Time Differences']])
                 drop_responses.extend([index + 1, index + 2])
 
-    drop_responses_dict[df_name] = drop_responses # save invalid responses in dict
+    drop_responses_dict[df_name] = drop_responses  # save invalid responses in dict
     time_differences_dict[df_name] = time_differences_list
     df = df.drop(drop_responses)
     df.reset_index(drop=True, inplace=True)
     dfs_updated[df_name] = df  # save updated dfs in dict
 
 
-# TODO: calculate S1 responses, S2 responses, no responses, errors.
+# copy updated dfs for processing of responses:
+dfs_copy = {}
+for df_name, df in dfs_updated.items():
+    dfs_copy[df_name] = df.copy()
+    dfs_copy[df_name] = df.assign(Reaction=0, Reaction_Time=0)
+
+# S1 responses, S2 responses, no responses, errors.
 s1_responses_dict = {}
 s2_responses_dict = {}
 errors_dict = {}
-misses_dict = {}
-for df_name, df in dfs_updated.items():
+tlo1 = 0.985  # 1.486  # 0.985
+tlo2 = 0.925    # 1.288  # 0.925
+for df_name, df in dfs_copy.items():
     s1_responses = []
-    s2_responses = []
     errors = []
-    misses = []
-    s1_indices = df.index[df['Stimulus Type'] == 'stim1']
-    response_indices = df.index[df['Stimulus Type'] == 'response']
-    for s1_index in s1_indices:
-        s1_number = df.at[s1_index, 'Numbers']  # get corresponding number of stim1
-        s1_time = df.at[s1_index, 'Time'] # get corresponding stim1 time
-        next_s1_index = s1_indices[s1_indices > s1_index].min()  # get next s1 index
-        window_data = df.loc[s1_index:next_s1_index - 1]
+    s1_controlled_rows = set()
+    stim_indices = df['Stimulus Type'].index
+    stim_types = df['Stimulus Type'].loc[stim_indices]
 
-        # Find the corresponding number of 'stim2' within the window
-        s2_numbers_within_window = window_data.loc[window_data['Stimulus Type'] == 'stim2', 'Numbers'].values
-        s2_indices_within_window = window_data.index[window_data['Stimulus Type'] == 'stim2']
+    # get s1 responses:
+    for (stim_index, stimulus) in enumerate(stim_types):
+        if stimulus == 'stim1':
+            s1_number = df.at[stim_index, 'Numbers']  # get corresponding number of stim1
+            s1_time = df.at[stim_index, 'Time']  # get corresponding stim1 time
+            s1_label = df.at[stim_index, 'Stimulus Type']
 
-        responses_within_window = window_data[window_data['Stimulus Type'] == 'response']
-        if len(responses_within_window) == 0:
-            stimulus_type_missed = window_data['Stimulus Type'].values[0]
+            # define time window:
+            window_start = s1_time
+            window_end = s1_time + tlo2 + 0.2
+            window_data = df.loc[(df['Time'] >= window_start) & (df['Time'] <= window_end)]
+            if 'response' in window_data['Stimulus Type'].values:
+                response_indices_within_window = window_data[window_data['Stimulus Type'] == 'response'].index
+                for response_index in response_indices_within_window:
+                    response_number = window_data['Numbers'].loc[response_index]
+                    response_time = window_data['Time'].loc[response_index]
+                    response_label = window_data['Stimulus Type'].loc[response_index]
+                    response_type = window_data['Reaction'].loc[response_index]
+                    if response_number == s1_number:
+                        s1_responses.append((stim_index, s1_label, s1_number, s1_time,
+                                             response_index, response_label, response_number, response_time))
+                        s1_controlled_rows.add((stim_index, response_index, s1_time))
+    s1_responses_dict[df_name] = s1_responses
+for df_name, df in dfs_copy.items():
+    for stim_index, response_index, s1_time in s1_controlled_rows:
+        df.at[stim_index, 'Reaction'] = 1
+        df.at[response_index, 'Reaction'] = 1
+        df.at[response_index, 'Reaction_Time'] = s1_time
 
-            stimulus_index_missed = window_data.index[0]
+for df_name, df in dfs_copy.items():
+    s2_responses = []
+    s2_controlled_rows = set()
+    stim_indices = df['Stimulus Type'].index
+    stim_types = df['Stimulus Type'].loc[stim_indices]
+    for (stim_index, stimulus) in enumerate(stim_types):
+        if stimulus == 'stim2':
+            s2_number = df.at[stim_index, 'Numbers']  # get corresponding number of stim1
+            s2_time = df.at[stim_index, 'Time']  # get corresponding stim1 time
+            s2_label = df.at[stim_index, 'Stimulus Type']
 
-            stimulus_number_missed = window_data.at[stimulus_index_missed, 'Numbers']
-
-            misses.append(('miss', window_data.at[stimulus_index_missed, 'Time'], stimulus_type_missed,
-                           stimulus_number_missed, stimulus_index_missed))
-        else:
-            for response_index, response_row in responses_within_window.iterrows():
-                response_number = response_row['Numbers']
-                if response_number == s1_number:
-                    s1_responses.append((response_index, 's1', response_number, response_row['Time'], 'stim1',
-                                         s1_number, s1_index, s1_time))
-                elif response_number in s2_numbers_within_window:
-                    matching_s2_indices = s2_indices_within_window[s2_numbers_within_window == response_number]
-                    for s2_index_within_window in matching_s2_indices:
-                        s2_responses.append((response_index, 's2', response_number, response_row['Time'], 'stim2',
-                                             window_data.at[s2_index_within_window, 'Numbers'],
-                                             s2_index_within_window, window_data.at[s2_index_within_window, 'Time']))
-                else:
-                    stimulus_index_error = window_data.index[0]
-                    stimulus_type_error = window_data.at[stimulus_index_error, 'Stimulus Type']
-                    stimulus_number_error = window_data.at[stimulus_index_error, 'Numbers']
-                    stimulus_time_error = window_data.at[stimulus_index_error, 'Time']
-                    errors.append((response_index, 'error', response_number, response_row['Time'],
-                                   stimulus_type_error, stimulus_index_error,
-                                   stimulus_number_error, stimulus_time_error))
-
-    s1_responses_dict[df_name] = {'s1_responses': s1_responses}
-    s2_responses_dict[df_name] = {'s2_responses': s2_responses}
-    errors_dict[df_name] = {'errors': errors}
-    misses_dict[df_name] = {'misses': misses}
-
-# for s2 as target:
-# s1_responses_dict = {}
-# s2_responses_dict = {}
-# errors_dict = {}
-# misses_dict = {}
-# for df_name, df in dfs_updated.items():
-#     s1_responses = []
-#     s2_responses = []
-#     errors = []
-#     misses = []
-#     s2_indices = df.index[df['Stimulus Type'] == 'stim2']
-#     response_indices = df.index[df['Stimulus Type'] == 'response']
-#     for s2_index in s2_indices:
-#         s2_number = df.at[s2_index, 'Numbers']  # get corresponding number of stim2
-#         s2_time = df.at[s2_index, 'Time'] # get corresponding stim2 time
-#         next_s2_index = s2_indices[s2_indices > s2_index].min()  # get next s2 index
-#         window_data = df.loc[s2_index:next_s2_index - 1]
-#
-#         # Find the corresponding number of 'stim1' within the window
-#         s1_numbers_within_window = window_data.loc[window_data['Stimulus Type'] == 'stim1', 'Numbers'].values
-#         s1_indices_within_window = window_data.index[window_data['Stimulus Type'] == 'stim1']
-#
-#         responses_within_window = window_data[window_data['Stimulus Type'] == 'response']
-#         if len(responses_within_window) == 0:
-#             stimulus_type_missed = window_data['Stimulus Type'].values[0]
-#
-#             stimulus_index_missed = window_data.index[0]
-#
-#             stimulus_number_missed = window_data.at[stimulus_index_missed, 'Numbers']
-#
-#             misses.append(('miss', window_data.at[stimulus_index_missed, 'Time'], stimulus_type_missed,
-#                            stimulus_number_missed, stimulus_index_missed))
-#         else:
-#             for response_index, response_row in responses_within_window.iterrows():
-#                 response_number = response_row['Numbers']
-#                 if response_number == s2_number:
-#                     s2_responses.append((response_index, 's2', response_number, response_row['Time'], 'stim2',
-#                                          s2_number, s2_index, s2_time))
-#                 elif response_number in s1_numbers_within_window:
-#                     matching_s1_indices = s1_indices_within_window[s1_numbers_within_window == response_number]
-#                     for s1_index_within_window in matching_s1_indices:
-#                         s1_responses.append((response_index, 's1', response_number, response_row['Time'], 'stim1',
-#                                              window_data.at[s1_index_within_window, 'Numbers'],
-#                                              s1_index_within_window, window_data.at[s1_index_within_window, 'Time']))
-#                 else:
-#                     stimulus_index_error = window_data.index[0]
-#                     stimulus_type_error = window_data.at[stimulus_index_error, 'Stimulus Type']
-#                     stimulus_number_error = window_data.at[stimulus_index_error, 'Numbers']
-#                     stimulus_time_error = window_data.at[stimulus_index_error, 'Time']
-#                     errors.append((response_index, 'error', response_number, response_row['Time'],
-#                                    stimulus_type_error, stimulus_index_error,
-#                                    stimulus_number_error, stimulus_time_error))
-#
-#     s1_responses_dict[df_name] = {'s1_responses': s1_responses}
-#     s2_responses_dict[df_name] = {'s2_responses': s2_responses}
-#     errors_dict[df_name] = {'errors': errors}
-#     misses_dict[df_name] = {'misses': misses}
+            window_start = s2_time
+            window_end = s2_time + tlo2 + 0.2
+            window_data = df.loc[(df['Time'] >= window_start) & (df['Time'] <= window_end)]
+            if 'response' in window_data['Stimulus Type'].values:
+                response_indices_within_window = window_data[window_data['Stimulus Type'] == 'response'].index
+                for response_index in response_indices_within_window:
+                    response_number = window_data['Numbers'].loc[response_index]
+                    response_time = window_data['Time'].loc[response_index]
+                    response_label = window_data['Stimulus Type'].loc[response_index]
+                    response_type = window_data['Reaction'].loc[response_index]
+                    if response_number == s2_number and response_type == 0:
+                        s2_responses.append((stim_index, s2_label, s2_number, s2_time,
+                                             response_index, response_label, response_number, response_time))
+                        s2_controlled_rows.add((stim_index, response_index, s2_time))
+    s2_responses_dict[df_name] = s2_responses
+for df_name, df in dfs_copy.items():
+    for stim_index, response_index, s2_time in s2_controlled_rows:
+        df.at[stim_index, 'Reaction'] = 2
+        df.at[response_index, 'Reaction'] = 2
+        df.at[response_index, 'Reaction_Time'] = s2_time
 
 # convert to dfs for readability
-
 s1_responses_dfs = {}
 for df_name, sub_dict in s1_responses_dict.items():
-
-    rows = [{'response_index': row[0],
-             'response_type': row[1],
-             'response_number': row[2],
-             'response_time': row[3],
-             'stimulus_type': row[4],
-             'stimulus_number': row[5],
-             'stimulus_index': row[6],
-             'stimulus_time': row[7]} for row in sub_dict['s1_responses']]
-
-    # Create the DataFrame
+    rows = [{'stim_index': row[0],
+             's1_label': row[1],
+             's1_number': row[2],
+             's1_time': row[3],
+             'response_index': row[4],
+             'response_label': row[5],
+             'response_number': row[6],
+             'response_time': row[7]} for row in sub_dict]
+    s1_responses_dfs[df_name] = rows
     s1_responses_df = pd.DataFrame(rows)
     s1_responses_dfs[df_name] = s1_responses_df
-
 
 
 # Convert s2_responses_dict
 s2_responses_dfs = {}
 for df_name, sub_dict in s2_responses_dict.items():
-
-    rows = [{'response_index': row[0],
-             'response_type': row[1],
-             'response_number': row[2],
-             'response_time': row[3],
-             'stimulus_type': row[4],
-             'stimulus_number': row[5],
-             'stimulus_index': row[6],
-             'stimulus_time': row[7]} for row in sub_dict['s2_responses']]
-
+    rows = [{'stim_index': row[0],
+             's2_label': row[1],
+             's2_number': row[2],
+             's2_time': row[3],
+             'response_index': row[4],
+             'response_label': row[5],
+             'response_number': row[6],
+             'response_time': row[7]} for row in sub_dict]
+    s2_responses_dfs[df_name] = rows
     s2_responses_df = pd.DataFrame(rows)
     s2_responses_dfs[df_name] = s2_responses_df
 
+for df_name, df in dfs_copy.items():
+    stim1_count = len(df[df['Stimulus Type'] == 'stim1'])
+    stim2_count = len(df[df['Stimulus Type'] == 'stim2'])
 
-# Convert errors_dict
-errors_dfs = {}
-for df_name, sub_dict in errors_dict.items():
+    combined_s1_responses = s1_responses_dfs[df_name]  # Retrieve DataFrame for df_name
+    combined_s2_responses = s2_responses_dfs[df_name]  # Retrieve DataFrame for df_name
 
-    rows = [{'response_index': row[0],
-             'response_type': row[1],
-             'response_number': row[2],
-             'response_time': row[3],
-             'stimulus_type': row[4],
-             'stimulus_index': row[5],
-             'stimulus_number': row[6],
-             'stimulus_time': row[7]} for row in sub_dict['errors']]
+    s1_counts = combined_s1_responses.groupby('response_label').size().to_dict() if not combined_s1_responses.empty else {}
+    s2_counts = combined_s2_responses.groupby('response_label').size().to_dict() if not combined_s2_responses.empty else {}
 
-    # Create the DataFrame
-    errors_df = pd.DataFrame(rows)
-    errors_dfs[df_name] = errors_df
+    combined_counts = {
+        's1': s1_counts.get('response', 0),  # Get count of 'response' label for 'stim1'
+        's2': s2_counts.get('response', 0),  # Get count of 'response' label for 'stim2'
+    }
 
-# Convert misses_dict
-misses_dfs = {}
-for df_name, sub_dict in misses_dict.items():
+    # Create a bar plot with additional bars for total counts of 'stim1' and 'stim2'
+    plt.figure(figsize=(12, 8))
+    bars = plt.bar(range(len(combined_counts)), combined_counts.values(), color=['blue', 'orange'])
 
-    rows = [{'miss_type': row[0],
-             'time_missed': row[1],
-             'stimulus_type_missed': row[2],
-             'stimulus_index_missed': row[3],
-             'stimulus_number_missed': row[4]} for row in sub_dict['misses']]
+    # Add additional bars for total counts of 'stim1' and 'stim2'
+    plt.bar(len(combined_counts), stim1_count, color='lightblue', label='Total s1')
+    plt.bar(len(combined_counts) + 1, stim2_count, color='lightsalmon', label='Total s2')
 
-    misses_df = pd.DataFrame(rows)
-    misses_dfs[df_name] = misses_df
-
-
-response_counts = {}
-
-for df_name, df in dfs_updated.items():
-    response_counts[df_name] = df['Stimulus Type'].value_counts().get('response', 0)
-
-print(response_counts)
-
-
-# Combine all s1_responses_dfs, s2_responses_dfs, errors_dfs, and misses_dfs
-combined_s1_responses = pd.concat(s1_responses_dfs.values())
-combined_s2_responses = pd.concat(s2_responses_dfs.values())
-combined_errors = pd.concat(errors_dfs.values())
-combined_misses = pd.concat(misses_dfs.values())
-
-# Count each response type
-s1_counts = combined_s1_responses['response_type'].value_counts()
-s2_counts = combined_s2_responses['response_type'].value_counts()
-error_counts = combined_errors['response_type'].value_counts()
-miss_counts = combined_misses['miss_type'].value_counts()
-
-# Combine counts into one DataFrame
-combined_counts = pd.DataFrame({
-    's1_responses': s1_counts,
-    's2_responses': s2_counts,
-    'errors': error_counts,
-    'misses': miss_counts
-}).fillna(0)  # Fill NaN values with 0 if any type is missing
-
-total_responses = combined_counts.sum(axis=1)
-grand_total = total_responses.sum()
-percentage = (combined_counts / grand_total) * 100
-
-# Plot the combined counts
-plt.figure(figsize=(12, 8))
-percentage.plot(kind='bar', stacked=False)
-plt.title('Comparison of Responses, Errors, and Misses')
-plt.xlabel('Response Type')
-plt.ylabel('Count')
-plt.xticks(rotation=45)  # rotation of the x labels
-plt.legend(title='Response Category')
-plt.show()
-
-# fig, axis = plt.subplots(1,1)
-# plt.figure(figsize=(12, 8))
-# fig = combined_counts.plot(kind='bar', stacked=False)
-# axis.set_title('Comparison of Responses, Errors, and Misses')
-# axis.get_xticks()
-# axis.set_xlabel('Response Type')
-# plt.ylabel('Count')
-# plt.set_xticks(rotation=45)
-# plt.legend(title='Response Category')
-# plt.show()
-
+    plt.title(f'Comparison of Response Counts between s1 and s2 for dataframe: {df_name}')
+    plt.xlabel('Stimulus Type')
+    plt.ylabel('Response Counts')
+    plt.xticks(range(len(combined_counts) + 2), list(combined_counts.keys()) + [f'Total s1: {stim1_count}', f'Total s2: {stim2_count}'], rotation=45)
+    plt.legend(title='Response Category')
+    plt.show()
 
 # TODO: calculate RT:
 # stimulus_time - response_time
@@ -355,8 +264,8 @@ plt.show()
 RT_s1 = []
 RT_s1_dfs = {}
 for i, (df_name, df) in enumerate(s1_responses_dfs.items()):
-    if not df.empty and 'stimulus_time' in df.columns:
-        stim1_time = df['stimulus_time'].values
+    if not df.empty and 's1_time' in df.columns:
+        stim1_time = df['s1_time'].values
         response_s1 = df['response_time'].values
         RT = response_s1 - stim1_time
         RT_s1.append(RT)
@@ -364,24 +273,26 @@ for i, (df_name, df) in enumerate(s1_responses_dfs.items()):
 
 RT_vals_s1 = []
 for df_name, RT_dfs in RT_s1_dfs.items():
-    RT_vals_s1.extend(RT_dfs['RT'].values)
+    if not df.empty and 's1_time' in df.columns:
+        RT_vals_s1.extend(RT_dfs['RT'].values)
+plt.figure()
 plt.hist(RT_vals_s1, color='skyblue', edgecolor='black')
 plt.xlabel('Reaction Time')
 plt.ylabel('Frequency')
 plt.title('Reaction Times Distribution')
 plt.show()
 
-# median RT:
-RT_median = np.median(RT_vals_s1)
-RT_mean = np.mean(RT_vals_s1)
-RT_max = np.max(RT_vals_s1)
-RT_min = np.min(RT_vals_s1)
-
+# # median RT:
+# RT_median = np.median(RT_vals_s1)
+# RT_mean = np.mean(RT_vals_s1)
+# RT_max = np.max(RT_vals_s1)
+# RT_min = np.min(RT_vals_s1)
+#
 RT_s2 = []
 RT_s2_dfs = {}
 for i, (df_name, df) in enumerate(s2_responses_dfs.items()):
-    if not df.empty and 'stimulus_time' in df.columns:
-        stim2_time = df['stimulus_time'].values
+    if not df.empty and 's2_time' in df.columns:
+        stim2_time = df['s2_time'].values
         response_s2 = df['response_time'].values
         RT = response_s2 - stim2_time
         RT_s2.append(RT)
@@ -390,14 +301,15 @@ for i, (df_name, df) in enumerate(s2_responses_dfs.items()):
 RT_vals_s2 = []
 for df_name, RT_dfs in RT_s2_dfs.items():
     RT_vals_s2.extend(RT_dfs['RT'].values)
+plt.figure()
 plt.hist(RT_vals_s2, color='skyblue', edgecolor='black')
 plt.xlabel('Reaction Time')
 plt.ylabel('Frequency')
 plt.title('Reaction Times Distribution')
 plt.show()
 
-# calculate RTs
-RT_median = np.median(RT_vals_s2)
-RT_mean = np.mean(RT_vals_s2)
-RT_max = np.max(RT_vals_s2)
-RT_min = np.min(RT_vals_s2)
+# # calculate RTs
+# RT_median = np.median(RT_vals_s2)
+# RT_mean = np.mean(RT_vals_s2)
+# RT_max = np.max(RT_vals_s2)
+# RT_min = np.min(RT_vals_s2)
