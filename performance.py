@@ -15,6 +15,7 @@ data_path = Path('C:/Users/vrvra/PycharmProjects/EEG_Tools2/eeg')
 s1_files = Path('C:/Users/vrvra/PycharmProjects/EEG_Tools2/eeg/s1')
 s2_files = Path('C:/Users/vrvra/PycharmProjects/EEG_Tools2/eeg/s2')
 new_data = Path('C:/Users/vrvra/PycharmProjects/EEG_Tools2/eeg/new_data')
+test_data = Path('C:/Users/vrvra/PycharmProjects/EEG_Tools2/eeg/test')
 
 stim1 = {1: 'S  1', 2: 'S  2', 3: 'S  3', 4: 'S  4', 5: 'S  5', 6: 'S  6', 8: 'S  8', 9: 'S  9'}  # stimulus 1 markers
 stim2 = {1: 'S 65', 2: 'S 66', 3: 'S 67', 4: 'S 68', 5: 'S 69', 6: 'S 70', 8: 'S 72', 9: 'S 73'}  # stimulus 2 markers
@@ -22,9 +23,9 @@ response = {1: 'S129', 2: 'S130', 3: 'S131', 4: 'S132', 5: 'S133', 6: 'S134', 8:
 
 # select .vmrk files:
 marker_files = []
-for files in os.listdir(new_data):
-    if files.endswith('s1_240305_zh_ele.vmrk'):
-        marker_files.append(new_data / files)
+for files in os.listdir(test_data):
+    if files.endswith('test_both_voices_without_buttons.vmrk'):
+        marker_files.append(test_data / files)
 
 # save marker files as pandas dataframe:
 columns = ['Stimulus Stream', 'Position', 'Time Difference']
@@ -229,6 +230,16 @@ for df_name, sub_dict in s2_responses_dict.items():
     s2_responses_dfs[df_name] = s2_responses_df
 
 for df_name, df in dfs_copy.items():
+    # stim2_rows = df[df['Stimulus Type'] == 'stim2']
+    # print("Sample Rows where 'Stimulus Type' is 'stim2':")
+    # print(stim2_rows.head())  # shit
+    # for index in range(len(df) - 1):
+    #     current_time = df.at[index, 'Time']
+    #     # print(current_time)
+    #     next_time = df.at[index + 1, 'Time']
+    #     time_difference = next_time - current_time
+    #     df.loc[index, 'Time Differences'] = time_difference
+    # df.sort_values(by='Time Differences', ascending=True, inplace=True)
     stim1_count = len(df[df['Stimulus Type'] == 'stim1'])
     stim2_count = len(df[df['Stimulus Type'] == 'stim2'])
 

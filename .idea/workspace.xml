@@ -4,9 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e6b904c9-5857-475e-90eb-78e2fda0bcc3" name="Changes" comment="performance calculate and plotted for elevation and azimuth in percentage">
+    <list default="true" id="e6b904c9-5857-475e-90eb-78e2fda0bcc3" name="Changes" comment="performance s1 s2, no errors, plot s1 and s2 responses, RTs">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/figures/240226_azimuth_responses_pilot.png" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/performance.py" beforeDir="false" afterPath="$PROJECT_DIR$/performance.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -62,9 +61,6 @@
       <module name="EEG_Tools2" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
       <option name="SDK_HOME" value="" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="true" />
@@ -339,7 +335,14 @@
       <option name="project" value="LOCAL" />
       <updated>1709556803585</updated>
     </task>
-    <option name="localTasksCounter" value="31" />
+    <task id="LOCAL-00031" summary="performance s1 s2, no errors, plot s1 and s2 responses, RTs">
+      <created>1709929002015</created>
+      <option name="number" value="00031" />
+      <option name="presentableId" value="LOCAL-00031" />
+      <option name="project" value="LOCAL" />
+      <updated>1709929002015</updated>
+    </task>
+    <option name="localTasksCounter" value="32" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -373,6 +376,7 @@
     <MESSAGE value="trying to calculate performance" />
     <MESSAGE value="performance calculate and plotted for elevation and azimuth" />
     <MESSAGE value="performance calculate and plotted for elevation and azimuth in percentage" />
-    <option name="LAST_COMMIT_MESSAGE" value="performance calculate and plotted for elevation and azimuth in percentage" />
+    <MESSAGE value="performance s1 s2, no errors, plot s1 and s2 responses, RTs" />
+    <option name="LAST_COMMIT_MESSAGE" value="performance s1 s2, no errors, plot s1 and s2 responses, RTs" />
   </component>
 </project>
