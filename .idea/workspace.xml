@@ -4,7 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e6b904c9-5857-475e-90eb-78e2fda0bcc3" name="Changes" comment="performance s1 s2, no errors, plot s1 and s2 responses, RTs">
+    <list default="true" id="e6b904c9-5857-475e-90eb-78e2fda0bcc3" name="Changes" comment="sdf stim2 shit">
+      <change afterPath="$PROJECT_DIR$/filtering_out_seq_noise.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/performance.py" beforeDir="false" afterPath="$PROJECT_DIR$/performance.py" afterDir="false" />
     </list>
@@ -56,11 +57,32 @@
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Python.filtering_out_seq_noise">
+    <configuration name="filtering_out_seq_noise" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="EEG_Tools2" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/filtering_out_seq_noise.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="performance" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="EEG_Tools2" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
       <option name="SDK_HOME" value="" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="true" />
@@ -77,6 +99,7 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.filtering_out_seq_noise" />
         <item itemvalue="Python.performance" />
       </list>
     </recent_temporary>
@@ -342,7 +365,14 @@
       <option name="project" value="LOCAL" />
       <updated>1709929002015</updated>
     </task>
-    <option name="localTasksCounter" value="32" />
+    <task id="LOCAL-00032" summary="sdf stim2 shit">
+      <created>1710000291188</created>
+      <option name="number" value="00032" />
+      <option name="presentableId" value="LOCAL-00032" />
+      <option name="project" value="LOCAL" />
+      <updated>1710000291188</updated>
+    </task>
+    <option name="localTasksCounter" value="33" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -377,6 +407,7 @@
     <MESSAGE value="performance calculate and plotted for elevation and azimuth" />
     <MESSAGE value="performance calculate and plotted for elevation and azimuth in percentage" />
     <MESSAGE value="performance s1 s2, no errors, plot s1 and s2 responses, RTs" />
-    <option name="LAST_COMMIT_MESSAGE" value="performance s1 s2, no errors, plot s1 and s2 responses, RTs" />
+    <MESSAGE value="sdf stim2 shit" />
+    <option name="LAST_COMMIT_MESSAGE" value="sdf stim2 shit" />
   </component>
 </project>

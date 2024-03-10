@@ -17,8 +17,8 @@ s2_files = Path('C:/Users/vrvra/PycharmProjects/EEG_Tools2/eeg/s2')
 new_data = Path('C:/Users/vrvra/PycharmProjects/EEG_Tools2/eeg/new_data')
 test_data = Path('C:/Users/vrvra/PycharmProjects/EEG_Tools2/eeg/test')
 
-stim1 = {1: 'S  1', 2: 'S  2', 3: 'S  3', 4: 'S  4', 5: 'S  5', 6: 'S  6', 8: 'S  8', 9: 'S  9'}  # stimulus 1 markers
-stim2 = {1: 'S 65', 2: 'S 66', 3: 'S 67', 4: 'S 68', 5: 'S 69', 6: 'S 70', 8: 'S 72', 9: 'S 73'}  # stimulus 2 markers
+s1 = {1: 'S  1', 2: 'S  2', 3: 'S  3', 4: 'S  4', 5: 'S  5', 6: 'S  6', 8: 'S  8', 9: 'S  9'}  # stimulus 1 markers
+s2 = {1: 'S 65', 2: 'S 66', 3: 'S 67', 4: 'S 68', 5: 'S 69', 6: 'S 70', 8: 'S 72', 9: 'S 73'}  # stimulus 2 markers
 response = {1: 'S129', 2: 'S130', 3: 'S131', 4: 'S132', 5: 'S133', 6: 'S134', 8: 'S136', 9: 'S137'}  # response markers
 
 # select .vmrk files:
@@ -49,14 +49,14 @@ for index, file_info in enumerate(marker_files):
 for df_name, df in dfs.items():
     # print(df_name)
     for index, stim_mrk in enumerate(df['Stimulus Stream']):
-        if stim_mrk in stim1.values():
+        if stim_mrk in s1.values():
             # print('stimulus marker is type 1')
-            df.at[index, 'Stimulus Type'] = 'stim1'
-            df.at[index, 'Numbers'] = next(key for key, value in stim1.items() if value == stim_mrk)
-        elif stim_mrk in stim2.values():
+            df.at[index, 'Stimulus Type'] = 's1'
+            df.at[index, 'Numbers'] = next(key for key, value in s1.items() if value == stim_mrk)
+        elif stim_mrk in s2.values():
             # print('stimulus marker is type 2')
-            df.at[index, 'Stimulus Type'] = 'stim2'
-            df.at[index, 'Numbers'] = next(key for key, value in stim2.items() if value == stim_mrk)
+            df.at[index, 'Stimulus Type'] = 's2'
+            df.at[index, 'Numbers'] = next(key for key, value in s2.items() if value == stim_mrk)
         elif stim_mrk in response.values():
             # print('stimulus marker is type response')
             df.at[index, 'Stimulus Type'] = 'response'
@@ -66,7 +66,7 @@ for df_name, df in dfs.items():
 for df_name, df in dfs.items():
     rows_to_drop = []
     for index, stim_mrk in enumerate(df['Stimulus Stream']):
-        if stim_mrk not in stim1.values() and stim_mrk not in stim2.values() and stim_mrk not in response.values():
+        if stim_mrk not in s1.values() and stim_mrk not in s2.values() and stim_mrk not in response.values():
             rows_to_drop.append(index)
     # Drop the marked rows from the DataFrame
     df.drop(rows_to_drop, inplace=True)
@@ -139,9 +139,9 @@ for df_name, df in dfs_copy.items():
 
     # get s1 responses:
     for (stim_index, stimulus) in enumerate(stim_types):
-        if stimulus == 'stim1':
-            s1_number = df.at[stim_index, 'Numbers']  # get corresponding number of stim1
-            s1_time = df.at[stim_index, 'Time']  # get corresponding stim1 time
+        if stimulus == 's1':
+            s1_number = df.at[stim_index, 'Numbers']  # get corresponding number of s1
+            s1_time = df.at[stim_index, 'Time']  # get corresponding s1 time
             s1_label = df.at[stim_index, 'Stimulus Type']
 
             # define time window:
@@ -172,9 +172,9 @@ for df_name, df in dfs_copy.items():
     stim_indices = df['Stimulus Type'].index
     stim_types = df['Stimulus Type'].loc[stim_indices]
     for (stim_index, stimulus) in enumerate(stim_types):
-        if stimulus == 'stim2':
-            s2_number = df.at[stim_index, 'Numbers']  # get corresponding number of stim1
-            s2_time = df.at[stim_index, 'Time']  # get corresponding stim1 time
+        if stimulus == 's2':
+            s2_number = df.at[stim_index, 'Numbers']  # get corresponding number of s1
+            s2_time = df.at[stim_index, 'Time']  # get corresponding s1 time
             s2_label = df.at[stim_index, 'Stimulus Type']
 
             window_start = s2_time
@@ -230,9 +230,9 @@ for df_name, sub_dict in s2_responses_dict.items():
     s2_responses_dfs[df_name] = s2_responses_df
 
 for df_name, df in dfs_copy.items():
-    # stim2_rows = df[df['Stimulus Type'] == 'stim2']
-    # print("Sample Rows where 'Stimulus Type' is 'stim2':")
-    # print(stim2_rows.head())  # shit
+    # s2_rows = df[df['Stimulus Type'] == 's2']
+    # print("Sample Rows where 'Stimulus Type' is 's2':")
+    # print(s2_rows.head())  # shit
     # for index in range(len(df) - 1):
     #     current_time = df.at[index, 'Time']
     #     # print(current_time)
@@ -240,8 +240,8 @@ for df_name, df in dfs_copy.items():
     #     time_difference = next_time - current_time
     #     df.loc[index, 'Time Differences'] = time_difference
     # df.sort_values(by='Time Differences', ascending=True, inplace=True)
-    stim1_count = len(df[df['Stimulus Type'] == 'stim1'])
-    stim2_count = len(df[df['Stimulus Type'] == 'stim2'])
+    s1_count = len(df[df['Stimulus Type'] == 's1'])
+    s2_count = len(df[df['Stimulus Type'] == 's2'])
 
     combined_s1_responses = s1_responses_dfs[df_name]  # Retrieve DataFrame for df_name
     combined_s2_responses = s2_responses_dfs[df_name]  # Retrieve DataFrame for df_name
@@ -250,22 +250,22 @@ for df_name, df in dfs_copy.items():
     s2_counts = combined_s2_responses.groupby('response_label').size().to_dict() if not combined_s2_responses.empty else {}
 
     combined_counts = {
-        's1': s1_counts.get('response', 0),  # Get count of 'response' label for 'stim1'
-        's2': s2_counts.get('response', 0),  # Get count of 'response' label for 'stim2'
+        's1': s1_counts.get('response', 0),  # Get count of 'response' label for 's1'
+        's2': s2_counts.get('response', 0),  # Get count of 'response' label for 's2'
     }
 
-    # Create a bar plot with additional bars for total counts of 'stim1' and 'stim2'
+    # Create a bar plot with additional bars for total counts of 's1' and 's2'
     plt.figure(figsize=(12, 8))
     bars = plt.bar(range(len(combined_counts)), combined_counts.values(), color=['blue', 'orange'])
 
-    # Add additional bars for total counts of 'stim1' and 'stim2'
-    plt.bar(len(combined_counts), stim1_count, color='lightblue', label='Total s1')
-    plt.bar(len(combined_counts) + 1, stim2_count, color='lightsalmon', label='Total s2')
+    # Add additional bars for total counts of 's1' and 's2'
+    plt.bar(len(combined_counts), s1_count, color='lightblue', label='Total s1')
+    plt.bar(len(combined_counts) + 1, s2_count, color='lightsalmon', label='Total s2')
 
     plt.title(f'Comparison of Response Counts between s1 and s2 for dataframe: {df_name}')
     plt.xlabel('Stimulus Type')
     plt.ylabel('Response Counts')
-    plt.xticks(range(len(combined_counts) + 2), list(combined_counts.keys()) + [f'Total s1: {stim1_count}', f'Total s2: {stim2_count}'], rotation=45)
+    plt.xticks(range(len(combined_counts) + 2), list(combined_counts.keys()) + [f'Total s1: {s1_count}', f'Total s2: {s2_count}'], rotation=45)
     plt.legend(title='Response Category')
     plt.show()
 
@@ -276,9 +276,9 @@ RT_s1 = []
 RT_s1_dfs = {}
 for i, (df_name, df) in enumerate(s1_responses_dfs.items()):
     if not df.empty and 's1_time' in df.columns:
-        stim1_time = df['s1_time'].values
+        s1_time = df['s1_time'].values
         response_s1 = df['response_time'].values
-        RT = response_s1 - stim1_time
+        RT = response_s1 - s1_time
         RT_s1.append(RT)
         RT_s1_dfs[df_name] = pd.DataFrame({'RT': RT})
 
@@ -303,9 +303,9 @@ RT_s2 = []
 RT_s2_dfs = {}
 for i, (df_name, df) in enumerate(s2_responses_dfs.items()):
     if not df.empty and 's2_time' in df.columns:
-        stim2_time = df['s2_time'].values
+        s2_time = df['s2_time'].values
         response_s2 = df['response_time'].values
-        RT = response_s2 - stim2_time
+        RT = response_s2 - s2_time
         RT_s2.append(RT)
         RT_s2_dfs[df_name] = pd.DataFrame({'RT': RT})
 
