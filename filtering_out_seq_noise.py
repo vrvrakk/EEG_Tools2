@@ -3,8 +3,8 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 
-data_path = Path('C:/Users/vrvra/PycharmProjects/EEG_Tools2/eeg/s1')
-generated_sequences = Path('C:/Users/vrvra/PycharmProjects/VKK_Attention/data/generated_sequences')
+data_path = Path.cwd()
+generated_sequences = Path('C:/projects/VKK_Attention/data/generated_sequences')
 # markers:
 stim1 = {1: 'S  1', 2: 'S  2', 3: 'S  3', 4: 'S  4', 5: 'S  5', 6: 'S  6', 8: 'S  8', 9: 'S  9'}  # stimulus 1 markers
 stim2 = {1: 'S 65', 2: 'S 66', 3: 'S 67', 4: 'S 68', 5: 'S 69', 6: 'S 70', 8: 'S 72', 9: 'S 73'}  # stimulus 2 markers
@@ -14,10 +14,10 @@ response = {1: 'S129', 2: 'S130', 3: 'S131', 4: 'S132', 5: 'S133', 6: 'S134', 8:
 marker_file = []
 sequence_file = []
 for file in os.listdir(data_path):
-    if file.endswith('s1_2_240228_ms_azimuth.vmrk'):
+    if file.endswith('koko1.vmrk'):
         marker_file.append(data_path/file)
 for file in os.listdir(generated_sequences):
-    if file.endswith('240228_ms_azimuth_2.csv'):
+    if file.endswith('kolos_block_10.csv'):
         sequence_file.append(generated_sequences/file)
 
 # convert to panda dfs:

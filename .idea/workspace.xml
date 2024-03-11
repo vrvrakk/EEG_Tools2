@@ -5,8 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="e6b904c9-5857-475e-90eb-78e2fda0bcc3" name="Changes" comment="sdf stim2 shit">
-      <change afterPath="$PROJECT_DIR$/filtering_out_seq_noise.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/EEG_Tools2.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/EEG_Tools2.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/filtering_out_seq_noise.py" beforeDir="false" afterPath="$PROJECT_DIR$/filtering_out_seq_noise.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/performance.py" beforeDir="false" afterPath="$PROJECT_DIR$/performance.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -62,11 +64,15 @@
       <module name="EEG_Tools2" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
       <option name="SDK_HOME" value="" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/filtering_out_seq_noise.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
@@ -88,6 +94,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/performance.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
@@ -146,6 +153,7 @@
       <workItem from="1685529767867" duration="1461000" />
       <workItem from="1685533198652" duration="10000" />
       <workItem from="1693927703664" duration="142000" />
+      <workItem from="1710168860621" duration="1679000" />
     </task>
     <task id="LOCAL-00001" summary="First commit">
       <created>1681205285011</created>

@@ -11,7 +11,7 @@ warnings.filterwarnings("ignore")
 
 matplotlib.use('TkAgg')
 
-data_path = Path('C:/Users/vrvra/PycharmProjects/EEG_Tools2/eeg')
+data_path = Path('C:/Users/vrvra/PycharmProjects/EEG_Tools2')
 s1_files = Path('C:/Users/vrvra/PycharmProjects/EEG_Tools2/eeg/s1')
 s2_files = Path('C:/Users/vrvra/PycharmProjects/EEG_Tools2/eeg/s2')
 new_data = Path('C:/Users/vrvra/PycharmProjects/EEG_Tools2/eeg/new_data')
@@ -23,9 +23,9 @@ response = {1: 'S129', 2: 'S130', 3: 'S131', 4: 'S132', 5: 'S133', 6: 'S134', 8:
 
 # select .vmrk files:
 marker_files = []
-for files in os.listdir(test_data):
+for files in os.listdir(data_path):
     if files.endswith('test_both_voices_without_buttons.vmrk'):
-        marker_files.append(test_data / files)
+        marker_files.append(data_path / files)
 
 # save marker files as pandas dataframe:
 columns = ['Stimulus Stream', 'Position', 'Time Difference']
